@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.3.0.0 - 2025-09-07
+## 0.4.0 - 2025-09-10
+
+- Added profit calculator
+
+## 0.3.0 - 2025-09-07
 
 - Button stays on top when scrolled
 - If window is very large display 3 tables per row

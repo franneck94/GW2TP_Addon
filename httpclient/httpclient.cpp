@@ -82,7 +82,7 @@ namespace HTTPClient
         std::lock_guard<std::mutex> lock(sessionMutex);
         if (!hSession)
         {
-            hSession = WinHttpOpen(L"GW2LogProofs/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
+            hSession = WinHttpOpen(L"GW2TP/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_ASYNC);
             if (hSession)
             {
                 WinHttpSetStatusCallback(hSession, AsyncCallback, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0);

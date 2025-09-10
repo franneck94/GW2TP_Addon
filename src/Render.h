@@ -21,4 +21,6 @@ public:
 
 private:
     int render_table(const std::string &request_id);
+    void top_section_child();
+    void table_child();
 };

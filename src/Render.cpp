@@ -196,6 +196,103 @@ namespace
         }
         ImGui::SetCursorPosX((windowWidth - elementWidth) * 0.5f);
     }
+
+    void render_profit_calculator()
+    {
+        static char buy_gold_str[10] = "0";
+        static char buy_silver_str[3] = "0";
+        static char buy_copper_str[3] = "0";
+        static char sell_gold_str[10] = "0";
+        static char sell_silver_str[3] = "0";
+        static char sell_copper_str[3] = "0";
+        static int profit_gold = 0, profit_silver = 0, profit_copper = 0, profit_total = 0;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
+
+        // Title
+        center_next_element("Profit Calculator", true);
+        ImGui::Text("Profit Calculator");
+        ImGui::Spacing();
+
+        // Buy Price Input
+        float start_x = ImGui::GetCursorPosX();
+        float window_width = ImGui::GetWindowContentRegionWidth();
+        float total_width = 300.0f;
+        ImGui::SetCursorPosX(start_x + (window_width - total_width) * 0.5f);
+
+        ImGui::BeginGroup();
+        ImGui::Text("Buy Price:");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(60.0f);
+        ImGui::InputText("##buy-g", buy_gold_str, sizeof(buy_gold_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("g");
+        ImGui::SameLine();
+        ImGui::InputText("##buy-s", buy_silver_str, sizeof(buy_silver_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("s");
+        ImGui::SameLine();
+        ImGui::InputText("##buy-c", buy_copper_str, sizeof(buy_copper_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("c");
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        ImGui::SetCursorPosX(start_x + (window_width - total_width) * 0.5f);
+        ImGui::BeginGroup();
+        ImGui::Text("Sell Price:");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(60.0f);
+        ImGui::InputText("##sell-g", sell_gold_str, sizeof(sell_gold_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("g");
+        ImGui::SameLine();
+        ImGui::InputText("##sell-s", sell_silver_str, sizeof(sell_silver_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("s");
+        ImGui::SameLine();
+        ImGui::InputText("##sell-c", sell_copper_str, sizeof(sell_copper_str), ImGuiInputTextFlags_CharsDecimal);
+        ImGui::SameLine();
+        ImGui::Text("c");
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        float child_width = 300.0f;
+        ImGui::SetCursorPosX((window_width - child_width) * 0.5f);
+        ImGui::BeginChild("calcButtonAndResult", ImVec2(child_width, 50));
+        float button_width = 100.0f;
+        if (ImGui::Button("Calculate", ImVec2(button_width, 0)))
+        {
+            const auto buy_gold = atoi(buy_gold_str);
+            const auto buy_silver = atoi(buy_silver_str);
+            const auto buy_copper = atoi(buy_copper_str);
+            const auto sell_gold = atoi(sell_gold_str);
+            const auto sell_silver = atoi(sell_silver_str);
+            const auto sell_copper = atoi(sell_copper_str);
+
+            const auto buy_total = (buy_gold * 10000) + (buy_silver * 100) + buy_copper;
+            const auto sell_total = (sell_gold * 10000) + (sell_silver * 100) + sell_copper;
+            profit_total = static_cast<int>(sell_total * TAX_RATE - buy_total);
+            profit_gold = static_cast<int>(profit_total / 10000);
+            profit_total %= 10000;
+            profit_silver = static_cast<int>(profit_total / 100);
+            profit_copper = static_cast<int>(profit_total % 100);
+        }
+
+        char profit_text[50];
+        snprintf(profit_text, sizeof(profit_text), "Profit: %dg %ds %dc", profit_gold, profit_silver, profit_copper);
+        ImGui::SameLine();
+        if (profit_total > 0)
+            ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), "%s", profit_text); // Gold color
+        else if (profit_total < 0)
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", profit_text); // Red color
+        else
+            ImGui::Text("%s", profit_text);
+
+        ImGui::PopStyleVar();
+        ImGui::Spacing();
+        ImGui::EndChild();
+    }
 }
 
 int Render::render_table(const std::string &request_id)
@@ -224,19 +321,22 @@ int Render::render_table(const std::string &request_id)
     return static_cast<int>(ImGui::GetCursorPosY());
 }
 
-void Render::render()
+void Render::top_section_child()
 {
-    if (!show_window)
-        return;
+    const auto window_width = ImGui::GetWindowContentRegionWidth();
 
-    if (ImGui::Begin("GW2TP", &show_window))
+    ImGui::BeginChild("TopSection", ImVec2(window_width, 150.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    auto *btn_label = "Refresh Data";
+    center_next_element(btn_label);
+    if (!data.loaded)
     {
-        const auto window_width = ImGui::GetWindowContentRegionWidth();
-
-        ImGui::BeginChild("TopSection", ImVec2(window_width, 50.0f), false, ImGuiWindowFlags_AlwaysAutoResize);
-
-        auto *btn_label = "Refresh Data";
-        center_next_element(btn_label);
+        auto *text_label = "Loading...";
+        center_next_element(text_label, true);
+        ImGui::Text(text_label);
+    }
+    else
+    {
         if (ImGui::Button(btn_label))
         {
             data.loaded = false;
@@ -245,35 +345,52 @@ void Render::render()
             data.futures.clear();
             data.requesting();
         }
-
-        if (!data.loaded)
-        {
-            auto *text_label = "Loading...";
-            center_next_element(text_label, true);
-            ImGui::Text(text_label);
-        }
-        ImGui::EndChild();
-
-        ImGui::BeginChild("ScrollableContent", ImVec2(window_width, -1.0), false, ImGuiWindowFlags_AlwaysAutoResize);
-
-        const auto large_window = window_width > 450.0F;
-        const auto very_large_window = window_width > 750.0F;
-        const auto child_size = ImVec2(window_width * (very_large_window ? 0.33f : (large_window ? 0.5f : 1.0F)), TABLE_HEIGHT_PX);
-
-        auto idx = 0U;
-        for (const auto command : API::COMMANDS_LIST)
-        {
-            ImGui::BeginChild(("tableChild" + std::to_string(idx)).c_str(), child_size, false, ImGuiWindowFlags_AlwaysAutoResize);
-            const auto table_height = render_table(command);
-            ImGui::EndChild();
-            if (very_large_window && (idx % 3 != 2))
-                ImGui::SameLine();
-            else if (!very_large_window && large_window && (idx % 2 == 0))
-                ImGui::SameLine();
-            ++idx;
-        }
     }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    render_profit_calculator();
+    ImGui::Separator();
+
     ImGui::EndChild();
+}
+
+void Render::table_child()
+{
+    const auto window_width = ImGui::GetWindowContentRegionWidth();
+
+    ImGui::BeginChild("ScrollableContent", ImVec2(window_width, -1.0), false, ImGuiWindowFlags_AlwaysAutoResize);
+
+    const auto large_window = window_width > 450.0F;
+    const auto very_large_window = window_width > 750.0F;
+    const auto child_size = ImVec2(window_width * (very_large_window ? 0.33f : (large_window ? 0.5f : 1.0F)), TABLE_HEIGHT_PX);
+
+    auto idx = 0U;
+    for (const auto command : API::COMMANDS_LIST)
+    {
+        ImGui::BeginChild(("tableChild" + std::to_string(idx)).c_str(), child_size, false, ImGuiWindowFlags_AlwaysAutoResize);
+        const auto table_height = render_table(command);
+        ImGui::EndChild();
+        if (very_large_window && (idx % 3 != 2))
+            ImGui::SameLine();
+        else if (!very_large_window && large_window && (idx % 2 == 0))
+            ImGui::SameLine();
+        ++idx;
+    }
+
+    ImGui::EndChild();
+}
+
+void Render::render()
+{
+    if (!show_window)
+        return;
+
+    if (ImGui::Begin("GW2TP", &show_window))
+    {
+        top_section_child();
+        table_child();
+    }
 
     ImGui::End();
 }

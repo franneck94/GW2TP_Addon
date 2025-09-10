@@ -32,7 +32,7 @@ std::filesystem::path AddonPath;
 std::filesystem::path SettingsPath;
 Render render{Settings::ShowWindow};
 
-void ToggleShowWindowLogProofs(const char *keybindIdentifier)
+void ToggleShowWindowGW2TP(const char *keybindIdentifier)
 {
     Settings::ToggleShowWindow(SettingsPath);
 }
@@ -40,13 +40,13 @@ void ToggleShowWindowLogProofs(const char *keybindIdentifier)
 void RegisterQuickAccessShortcut()
 {
     APIDefs->Log(ELogLevel_DEBUG, ADDON_NAME, "Registering GW2TP quick access shortcut");
-    APIDefs->AddShortcut("SHORTCUT_LOG_PROOFS", "TEX_GW2TP_NORMAL", "TEX_LOG_HOVER", KB_TOGGLE_GW2TP, "Toggle GW2TP Window");
+    APIDefs->AddShortcut("SHORTCUT_GW2TP", "TEX_GW2TP_NORMAL", "TEX_LOG_HOVER", KB_TOGGLE_GW2TP, "Toggle GW2TP Window");
 }
 
 void DeregisterQuickAccessShortcut()
 {
     APIDefs->Log(ELogLevel_DEBUG, ADDON_NAME, "Deregistering GW2TP quick access shortcut");
-    APIDefs->RemoveShortcut("SHORTCUT_LOG_PROOFS");
+    APIDefs->RemoveShortcut("SHORTCUT_GW2TP");
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -121,7 +121,7 @@ void AddonLoad(AddonAPI *aApi)
 
     APIDefs->GetTextureOrCreateFromResource("TEX_GW2TP_NORMAL", IDB_GW2TP_NORMAL, hSelf);
     APIDefs->GetTextureOrCreateFromResource("TEX_GW2TP_HOVER", IDB_GW2TP_HOVER, hSelf);
-    APIDefs->RegisterKeybindWithString(KB_TOGGLE_GW2TP, ToggleShowWindowLogProofs, "(null)");
+    APIDefs->RegisterKeybindWithString(KB_TOGGLE_GW2TP, ToggleShowWindowGW2TP, "(null)");
     RegisterQuickAccessShortcut();
 }
 void AddonUnload()
