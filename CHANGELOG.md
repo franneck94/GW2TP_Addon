@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.5.0 - 2025-09-28
+## 0.5.1 - 2025-09-28
 
 - Added charm of brilliance forging
 - Added timer since laast update

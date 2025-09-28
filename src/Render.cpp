@@ -308,7 +308,9 @@ namespace
         int seconds = total_seconds % 60;
 
         char time_text[50];
-        if (hours > 0)
+        if (minutes < 1)
+            snprintf(time_text, sizeof(time_text), "Last update: %d seconds ago", seconds);
+        else if (hours > 0)
             snprintf(time_text, sizeof(time_text), "Last update: %02d:%02d:%02d ago", hours, minutes, seconds);
         else
             snprintf(time_text, sizeof(time_text), "Last update: %02d:%02d ago", minutes, seconds);
@@ -350,7 +352,7 @@ void Render::top_section_child()
 
     const auto window_width = ImGui::GetWindowContentRegionWidth();
 
-    ImGui::BeginChild("TopSection", ImVec2(window_width, 150.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     auto *btn_label = "Refresh Data";
     center_next_element(btn_label);
