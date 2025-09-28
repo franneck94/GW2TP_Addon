@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <list>
 #include <map>
@@ -171,6 +172,8 @@ namespace
         // forge
         else if (request_id == "symbol_enh_forge")
             _get_ordered_row_data(API::FORGE_ENH_NAMES, rows);
+        else if (request_id == "charm_brilliance_forge")
+            _get_ordered_row_data(API::FORGE_CHARM_NAMES, rows);
         else if (request_id == "loadstone_forge")
             _get_ordered_row_data(API::LOADSTONE_NAMES, rows);
         else if (request_id == "ecto" || request_id == "rare_gear")
@@ -293,6 +296,25 @@ namespace
         ImGui::Spacing();
         ImGui::EndChild();
     }
+
+    void UpdateTimer(const std::chrono::steady_clock::time_point &last_refresh_time)
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - last_refresh_time);
+
+        int total_seconds = static_cast<int>(elapsed.count());
+        int hours = total_seconds / 3600;
+        int minutes = (total_seconds % 3600) / 60;
+        int seconds = total_seconds % 60;
+
+        char time_text[50];
+        if (hours > 0)
+            snprintf(time_text, sizeof(time_text), "Last update: %02d:%02d:%02d ago", hours, minutes, seconds);
+        else
+            snprintf(time_text, sizeof(time_text), "Last update: %02d:%02d ago", minutes, seconds);
+        center_next_element(time_text, true);
+        ImGui::Text("%s", time_text);
+    }
 }
 
 int Render::render_table(const std::string &request_id)
@@ -323,6 +345,9 @@ int Render::render_table(const std::string &request_id)
 
 void Render::top_section_child()
 {
+    static auto last_refresh_time = std::chrono::steady_clock::now();
+    static bool first_load = true;
+
     const auto window_width = ImGui::GetWindowContentRegionWidth();
 
     ImGui::BeginChild("TopSection", ImVec2(window_width, 150.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -344,8 +369,12 @@ void Render::top_section_child()
             data.api_data.clear();
             data.futures.clear();
             data.requesting();
+            last_refresh_time = std::chrono::steady_clock::now();
+            first_load = false;
         }
     }
+
+    UpdateTimer(last_refresh_time);
 
     ImGui::Spacing();
     ImGui::Separator();

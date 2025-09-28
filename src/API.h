@@ -32,6 +32,7 @@ public:
         "mats_crafting_compare",
         // forge
         "symbol_enh_forge",
+        "charm_brilliance_forge",
         "loadstone_forge",
         // other
         "thesis_on_masterful_malice"};
@@ -136,6 +137,12 @@ public:
     };
 
     static const inline std::array<const char *, 3> FORGE_ENH_NAMES = {
+        "cost",
+        "profit_per_try",
+        "profit_per_shard",
+    };
+
+    static const inline std::array<const char *, 3> FORGE_CHARM_NAMES = {
         "cost",
         "profit_per_try",
         "profit_per_shard",
