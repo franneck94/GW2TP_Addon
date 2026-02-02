@@ -65,9 +65,9 @@ add_library(first_party_libs STATIC
     "src/Data.cpp"
     "src/resource.rc"
 )
-set_source_files_properties("src/resource.rc" PROPERTIES LANGUAGE RC)
 target_include_directories(first_party_libs PUBLIC
     "src"
+    "resources"
 )
 target_link_libraries(first_party_libs PRIVATE
     third_party_libs

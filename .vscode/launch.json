@@ -11,6 +11,23 @@
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": []
+        },
+        {
+            "name": "Image to C Array",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/img_to_c_array.py",
+            "args": [
+                "resources/GW2TP_Normal.png",
+                "resources/GW2TP_Hover.png",
+                "--array-name1",
+                "GW2TP_NORMAL",
+                "--array-name2",
+                "GW2TP_HOVER"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
         }
     ]
 }

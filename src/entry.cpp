@@ -13,6 +13,8 @@
 #include "nexus/Nexus.h"
 #include "rtapi/RTAPI.hpp"
 
+#include "GW2TP_Hover_data.h"
+#include "GW2TP_Normal_data.h"
 #include "Render.h"
 #include "Settings.h"
 #include "Shared.h"
@@ -40,7 +42,7 @@ void ToggleShowWindowGW2TP(const char *keybindIdentifier)
 void RegisterQuickAccessShortcut()
 {
     APIDefs->Log(ELogLevel_DEBUG, ADDON_NAME, "Registering GW2TP quick access shortcut");
-    APIDefs->AddShortcut("SHORTCUT_GW2TP", "TEX_GW2TP_NORMAL", "TEX_LOG_HOVER", KB_TOGGLE_GW2TP, "Toggle GW2TP Window");
+    APIDefs->AddShortcut("SHORTCUT_GW2TP", "TEX_GW2TP_NORMAL", "TEX_GW2TP_HOVER", KB_TOGGLE_GW2TP, "Toggle GW2TP Window");
 }
 
 void DeregisterQuickAccessShortcut()
@@ -119,8 +121,14 @@ void AddonLoad(AddonAPI *aApi)
     Settings::Load(SettingsPath);
     Settings::ShowWindow = false;
 
-    APIDefs->GetTextureOrCreateFromResource("TEX_GW2TP_NORMAL", IDB_GW2TP_NORMAL, hSelf);
-    APIDefs->GetTextureOrCreateFromResource("TEX_GW2TP_HOVER", IDB_GW2TP_HOVER, hSelf);
+    APIDefs->LoadTextureFromMemory("TEX_GW2TP_NORMAL",
+                                   (void *)GW2TP_NORMAL,
+                                   GW2TP_NORMAL_size,
+                                   nullptr);
+    APIDefs->LoadTextureFromMemory("TEX_GW2TP_HOVER",
+                                   (void *)GW2TP_HOVER,
+                                   GW2TP_HOVER_size,
+                                   nullptr);
     APIDefs->RegisterKeybindWithString(KB_TOGGLE_GW2TP, ToggleShowWindowGW2TP, "(null)");
     RegisterQuickAccessShortcut();
 }
