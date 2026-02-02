@@ -11,21 +11,7 @@ public:
     static const inline std::wstring PRODUCTION_API_URL = L"https://gw2tp-production.up.railway.app/api";
     static const inline std::wstring LOCAL_API_URL = L"http://localhost:8000/api";
 
-    static const inline std::set<std::string> COMMANDS_LIST = {
-        // runes
-        "scholar_rune",
-        "dragonhunter_rune",
-        "guardian_rune",
-        // relics
-        "relic_of_fireworks",
-        "relic_of_aristocracy",
-        "relic_of_thief",
-        // sigil
-        "sigil_of_impact",
-        "sigil_of_doom",
-        "sigil_of_torment",
-        "sigil_of_bursting",
-        "sigil_of_paralyzation",
+    static const inline std::set<std::string> REGULAR_COMMANDS_LIST = {
         // rare / ecto
         "rare_weapon_craft",
         "rare_gear_salvage",
@@ -40,10 +26,40 @@ public:
         // forge
         "symbol_enh_forge",
         "charm_brilliance_forge",
-        "loadstone_forge",
+        "lodestone_forge",
         // other
         "thesis_on_masterful_malice",
     };
+
+    static const inline std::set<std::string> RUNE_COMMANDS_LIST = {
+        "scholar_rune",
+        "dragonhunter_rune",
+        "guardian_rune",
+    };
+
+    static const inline std::set<std::string> SIGIL_COMMANDS_LIST = {
+        "sigil_of_impact",
+        "sigil_of_doom",
+        "sigil_of_torment",
+        "sigil_of_bursting",
+        "sigil_of_paralyzation",
+    };
+
+    static const inline std::set<std::string> RELIC_COMMANDS_LIST = {
+        "relic_of_fireworks",
+        "relic_of_thief",
+        "relic_of_aristocracy",
+    };
+
+    static const inline std::set<std::string> COMMANDS_LIST = []()
+    {
+        std::set<std::string> combined;
+        combined.insert(REGULAR_COMMANDS_LIST.begin(), REGULAR_COMMANDS_LIST.end());
+        combined.insert(RUNE_COMMANDS_LIST.begin(), RUNE_COMMANDS_LIST.end());
+        combined.insert(SIGIL_COMMANDS_LIST.begin(), SIGIL_COMMANDS_LIST.end());
+        combined.insert(RELIC_COMMANDS_LIST.begin(), RELIC_COMMANDS_LIST.end());
+        return combined;
+    }();
 
     static const inline std::array<const char *, 3> CRAFT_NAMES = {
         "crafting_cost",
@@ -91,7 +107,7 @@ public:
         "profit_stack",
     };
 
-    static const inline std::array<const char *, 4> LOADSTONE_NAMES = {
+    static const inline std::array<const char *, 4> LODESTONE_NAMES = {
         "onyx",
         "charged",
         "corrupted",
