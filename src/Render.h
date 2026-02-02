@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <set>
 #include <string>
 
 #include "Data.h"
@@ -22,5 +24,7 @@ public:
 private:
     int render_table(const std::string &request_id);
     void top_section_child();
+
     void table_child();
+    void render_tables_for_commands(const std::set<std::string> &commands, uint32_t &idx);
 };
