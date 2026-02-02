@@ -53,6 +53,8 @@ void Data::requesting()
         std::wcout << "Requesting data from API...\n";
         futures.clear();
 
+        const auto &base_url = use_localhost ? API::LOCAL_API_URL : API::PRODUCTION_API_URL;
+
         for (auto command : API::COMMANDS_LIST)
         {
             if (command == "ecto")
@@ -60,7 +62,7 @@ void Data::requesting()
             else if (command == "rare_gear")
                 command = "price?item_id=83008";
 
-            const auto wstr_url = API::PRODUCTION_API_URL + L"/" + std::wstring(command.begin(), command.end());
+            const auto wstr_url = base_url + L"/" + std::wstring(command.begin(), command.end());
             auto future = HTTPClient::GetRequestAsync(wstr_url);
             auto req = Request(std::move(command), std::move(future));
             futures.push_back(std::move(req));
