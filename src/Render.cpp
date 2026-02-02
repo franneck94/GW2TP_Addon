@@ -103,7 +103,10 @@ namespace
     {
         auto rows = std::vector<std::pair<std::string, Price>>{};
 
-        for (size_t i = 0; i < kv.size() - 2; i += 3)
+        if (kv.size() < 3)
+            return;
+
+        for (size_t i = 0; i + 2 < kv.size(); i += 3)
         {
             auto it = std::next(kv.begin(), i);
 
@@ -112,6 +115,9 @@ namespace
                 ++i;
                 ++it;
             }
+
+            if (std::distance(it, kv.end()) < 3)
+                break;
 
             auto name0 = std::next(it, 0)->first;
             auto name1 = std::next(it, 1)->first;
@@ -185,8 +191,8 @@ namespace
             _get_ordered_row_data(API::FORGE_ENH_NAMES, rows);
         else if (request_id == "charm_brilliance_forge")
             _get_ordered_row_data(API::FORGE_CHARM_NAMES, rows);
-        else if (request_id == "loadstone_forge")
-            _get_ordered_row_data(API::LOADSTONE_NAMES, rows);
+        else if (request_id == "lodestone_forge")
+            _get_ordered_row_data(API::LODESTONE_NAMES, rows);
         else if (request_id == "ecto" || request_id == "rare_gear")
         {
             for (const auto &[name, price] : rows)
@@ -418,18 +424,14 @@ void Render::top_section_child()
     ImGui::EndChild();
 }
 
-void Render::table_child()
+void Render::render_tables_for_commands(const std::set<std::string> &commands, uint32_t &idx)
 {
     const auto window_width = ImGui::GetWindowContentRegionWidth();
-
-    ImGui::BeginChild("ScrollableContent", ImVec2(window_width, -1.0), false, ImGuiWindowFlags_AlwaysAutoResize);
-
     const auto large_window = window_width > 450.0F;
     const auto very_large_window = window_width > 750.0F;
     const auto child_size = ImVec2(window_width * (very_large_window ? 0.33f : (large_window ? 0.5f : 1.0F)), TABLE_HEIGHT_PX);
 
-    auto idx = 0U;
-    for (const auto command : API::COMMANDS_LIST)
+    for (const auto command : commands)
     {
         ImGui::BeginChild(("tableChild" + std::to_string(idx)).c_str(), child_size, false, ImGuiWindowFlags_AlwaysAutoResize);
         const auto table_height = render_table(command);
@@ -440,6 +442,19 @@ void Render::table_child()
             ImGui::SameLine();
         ++idx;
     }
+}
+
+void Render::table_child()
+{
+    const auto window_width = ImGui::GetWindowContentRegionWidth();
+
+    ImGui::BeginChild("ScrollableContent", ImVec2(window_width, -1.0), false, ImGuiWindowFlags_AlwaysAutoResize);
+
+    auto idx = 0U;
+    render_tables_for_commands(API::REGULAR_COMMANDS_LIST, idx);
+    render_tables_for_commands(API::RUNE_COMMANDS_LIST, idx);
+    render_tables_for_commands(API::SIGIL_COMMANDS_LIST, idx);
+    render_tables_for_commands(API::RELIC_COMMANDS_LIST, idx);
 
     ImGui::EndChild();
 }
