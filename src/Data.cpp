@@ -88,15 +88,16 @@ void Data::storing()
         {
             auto j = json{};
             auto request_id = it->request_id;
-            const auto request = it->future.get();
+            std::string request;
             try
             {
+                request = it->future.get();
                 j = json::parse(request);
             }
             catch (const std::exception &e)
             {
-                std::cerr << "JSON parse error for request_id '" << request_id << "': " << e.what() << std::endl;
-                ++it;
+                std::cerr << "Request failed for request_id '" << request_id << "': " << e.what() << std::endl;
+                it = futures.erase(it);
                 return;
             }
 
