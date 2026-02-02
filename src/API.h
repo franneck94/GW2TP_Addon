@@ -9,6 +9,7 @@ class API
 {
 public:
     static const inline std::wstring PRODUCTION_API_URL = L"https://gw2tp-production.up.railway.app/api";
+    static const inline std::wstring LOCAL_API_URL = L"http://localhost:8000/api";
 
     static const inline std::set<std::string> COMMANDS_LIST = {
         // runes
@@ -19,6 +20,12 @@ public:
         "relic_of_fireworks",
         "relic_of_aristocracy",
         "relic_of_thief",
+        // sigil
+        "sigil_of_impact",
+        "sigil_of_doom",
+        "sigil_of_torment",
+        "sigil_of_bursting",
+        "sigil_of_paralyzation",
         // rare / ecto
         "rare_weapon_craft",
         "rare_gear_salvage",
@@ -35,7 +42,14 @@ public:
         "charm_brilliance_forge",
         "loadstone_forge",
         // other
-        "thesis_on_masterful_malice"};
+        "thesis_on_masterful_malice",
+    };
+
+    static const inline std::array<const char *, 3> CRAFT_NAMES = {
+        "crafting_cost",
+        "sell",
+        "profit",
+    };
 
     static const inline std::array<const char *, 4> RARE_GEAR_NAMES = {
         "stack_buy",
@@ -84,51 +98,21 @@ public:
         "destroyer",
     };
 
-    static const inline std::array<const char *, 4> THESIS_MASTERFUL_MALICE = {
-        "crafting_cost",
-        "sell",
-        "flip",
-        "profit",
-    };
+    static const inline std::array<const char *, 3> THESIS_MASTERFUL_MALICE = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> SCHOLAR_RUNE_NAMES = {
-        "crafting_cost",
-        "sell",
-        "profit",
-    };
+    static const inline std::array<const char *, 3> SCHOLAR_RUNE_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> GUARDIAN_RUNE_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> DRAGONHUNTER_RUNE_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> GUARDIAN_RUNE_NAMES = {
-        "crafting_cost",
-        "sell",
-        "profit",
-    };
+    static const inline std::array<const char *, 3> FIREWORKS_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> THIEF_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> ARISTOCRACY_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> DRAGONHUNTER_RUNE_NAMES = {
-        "crafting_cost",
-        "sell",
-        "profit",
-    };
-
-    static const inline std::array<const char *, 4> FIREWORKS_NAMES = {
-        "crafting_cost",
-        "sell",
-        "flip",
-        "profit",
-    };
-
-    static const inline std::array<const char *, 4> THIEF_NAMES = {
-        "crafting_cost",
-        "sell",
-        "flip",
-        "profit",
-    };
-
-    static const inline std::array<const char *, 4> ARISTOCRACY_NAMES = {
-        "crafting_cost",
-        "sell",
-        "flip",
-        "profit",
-    };
+    static const inline std::array<const char *, 3> SIGIL_OF_IMPACT_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> SIGIL_OF_DOOM_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> SIGIL_OF_TORMENT_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> SIGIL_OF_BURSTING_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 3> SIGIL_OF_PARALYZATION_NAMES = CRAFT_NAMES;
 
     static const inline std::array<const char *, 3> RARE_WEAPON_CRAFT_NAMES = {
         "crafting_cost",
