@@ -154,6 +154,17 @@ namespace
             _get_ordered_row_data(API::THIEF_NAMES, rows);
         else if (request_id == "relic_of_aristocracy")
             _get_ordered_row_data(API::ARISTOCRACY_NAMES, rows);
+        // sigil
+        else if (request_id == "sigil_of_impact")
+            _get_ordered_row_data(API::SIGIL_OF_IMPACT_NAMES, rows);
+        else if (request_id == "sigil_of_torment")
+            _get_ordered_row_data(API::SIGIL_OF_TORMENT_NAMES, rows);
+        else if (request_id == "sigil_of_doom")
+            _get_ordered_row_data(API::SIGIL_OF_DOOM_NAMES, rows);
+        else if (request_id == "sigil_of_bursting")
+            _get_ordered_row_data(API::SIGIL_OF_BURSTING_NAMES, rows);
+        else if (request_id == "sigil_of_paralyzation")
+            _get_ordered_row_data(API::SIGIL_OF_PARALYZATION_NAMES, rows);
         // gear
         else if (request_id == "rare_weapon_craft")
             _get_ordered_row_data(API::RARE_WEAPON_CRAFT_NAMES, rows);
@@ -198,6 +209,16 @@ namespace
             elementWidth = ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
         }
         ImGui::SetCursorPosX((windowWidth - elementWidth) * 0.5f);
+    }
+
+    void center_next_checkbox(const char *label)
+    {
+        const float windowWidth = ImGui::GetWindowSize().x;
+        const float checkboxWidth = ImGui::GetFrameHeight();
+        const float textWidth = ImGui::CalcTextSize(label).x;
+        const float innerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+        const float totalWidth = checkboxWidth + innerSpacing + textWidth;
+        ImGui::SetCursorPosX((windowWidth - totalWidth) * 0.5f);
     }
 
     void render_profit_calculator()
@@ -335,9 +356,7 @@ int Render::render_table(const std::string &request_id)
         add_header(request_id);
 
         if (API::COMMANDS_LIST.find(request_id) != API::COMMANDS_LIST.end())
-        {
             get_row_data(kv, request_id);
-        }
 
         ImGui::EndTable();
     }
@@ -353,6 +372,19 @@ void Render::top_section_child()
     const auto window_width = ImGui::GetWindowContentRegionWidth();
 
     ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    auto *checkbox_label = "Use localhost server";
+    center_next_checkbox(checkbox_label);
+    if (ImGui::Checkbox(checkbox_label, &data.use_localhost))
+    {
+        data.loaded = false;
+        data.requested = false;
+        data.api_data.clear();
+        data.futures.clear();
+        data.requesting();
+        last_refresh_time = std::chrono::steady_clock::now();
+        first_load = false;
+    }
 
     auto *btn_label = "Refresh Data";
     center_next_element(btn_label);
