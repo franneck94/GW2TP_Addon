@@ -45,6 +45,7 @@ class Data
 public:
     bool requested = false;
     bool loaded = false;
+    bool use_localhost = false;
 
     std::list<Request> futures;
     std::map<std::string, std::map<std::string, int>> api_data;
