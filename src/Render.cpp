@@ -13,8 +13,49 @@
 #include "Data.h"
 #include "Render.h"
 
+// Windows headers for URL opening
+#include <windows.h>
+#include <shellapi.h>
+
 namespace
 {
+    std::string get_url_for_request_id(const std::string& request_id)
+    {
+        static const std::map<std::string, std::string> url_map = {
+            {"rare_gear_salvage", "https://wiki.guildwars2.com/wiki/Piece_of_Rare_Unidentified_Gear/Salvage_Rate"},
+            {"gear_salvage", "https://wiki.guildwars2.com/wiki/Piece_of_Unidentified_Gear/Salvage_Rate"},
+            {"common_gear_salvage", "https://wiki.guildwars2.com/wiki/Piece_of_Common_Unidentified_Gear/Salvage_Rate"},
+            {"lodestone_forge", "https://fast.farming-community.eu/conversions/spirit-shard"},
+            {"charm_brilliance_forge", "https://fast.farming-community.eu/conversions/spirit-shard/charm-of-brilliance"},
+            {"rare_weapon_craft", "https://wiki.guildwars2.com/wiki/Krait_Shell"},
+            {"thesis_on_masterful_malice", "https://wiki.guildwars2.com/wiki/Thesis_on_Masterful_Malice"},
+            {"symbol_enh_forge", "https://fast.farming-community.eu/conversions/spirit-shard/symbol-of-enhancement"},
+            {"scholar_rune", "https://wiki.guildwars2.com/wiki/Superior_Rune_of_the_Scholar"},
+            {"guardian_rune", "https://wiki.guildwars2.com/wiki/Superior_Rune_of_the_Guardian"},
+            {"dragonhunter_rune", "https://wiki.guildwars2.com/wiki/Superior_Rune_of_the_Dragonhunter"},
+            {"relic_of_fireworks", "https://wiki.guildwars2.com/wiki/Relic_of_Fireworks"},
+            {"relic_of_thief", "https://wiki.guildwars2.com/wiki/Relic_of_the_Thief"},
+            {"relic_of_aristocracy", "https://wiki.guildwars2.com/wiki/Relic_of_the_Aristocracy"},
+            {"hard_leather_strap", "https://fast.farming-community.eu/conversions/spirit-shard/charm-of-brilliance"},
+            {"sigil_of_impact", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Impact"},
+            {"sigil_of_doom", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Doom"},
+            {"sigil_of_torment", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Torment"},
+            {"sigil_of_bursting", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Bursting"},
+            {"sigil_of_paralyzation", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Paralyzation"}
+        };
+
+        auto it = url_map.find(request_id);
+        return (it != url_map.end()) ? it->second : "";
+    }
+
+    void open_url_in_browser(const std::string& url)
+    {
+        if (!url.empty())
+        {
+            ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        }
+    }
+
     std::string get_clean_category_name(const std::string &input, const bool skip_last_two)
     {
         auto view = input | std::views::transform(
@@ -61,7 +102,7 @@ namespace
         ImGui::Text("%d", price.copper);
     }
 
-    void add_header(const std::string name)
+    void add_header(const std::string name, const std::string& url = "")
     {
         const auto transformed_name = get_clean_category_name(name, false);
 
@@ -73,13 +114,33 @@ namespace
 
         // Check for hover and double-click after headers are rendered
         if (ImGui::TableGetColumnFlags(0) & ImGuiTableColumnFlags_IsHovered && ImGui::IsMouseDoubleClicked(0))
-            ImGui::SetClipboardText(transformed_name.c_str());
+        {
+            if (!url.empty())
+                open_url_in_browser(url);
+            else
+                ImGui::SetClipboardText(transformed_name.c_str());
+        }
         if (ImGui::TableGetColumnFlags(1) & ImGuiTableColumnFlags_IsHovered && ImGui::IsMouseDoubleClicked(0))
-            ImGui::SetClipboardText(transformed_name.c_str());
+        {
+            if (!url.empty())
+                open_url_in_browser(url);
+            else
+                ImGui::SetClipboardText(transformed_name.c_str());
+        }
         if (ImGui::TableGetColumnFlags(2) & ImGuiTableColumnFlags_IsHovered && ImGui::IsMouseDoubleClicked(0))
-            ImGui::SetClipboardText(transformed_name.c_str());
+        {
+            if (!url.empty())
+                open_url_in_browser(url);
+            else
+                ImGui::SetClipboardText(transformed_name.c_str());
+        }
         if (ImGui::TableGetColumnFlags(3) & ImGuiTableColumnFlags_IsHovered && ImGui::IsMouseDoubleClicked(0))
-            ImGui::SetClipboardText(transformed_name.c_str());
+        {
+            if (!url.empty())
+                open_url_in_browser(url);
+            else
+                ImGui::SetClipboardText(transformed_name.c_str());
+        }
     }
 
     template <size_t N>
@@ -359,7 +420,8 @@ int Render::render_table(const std::string &request_id)
     ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableColumnFlags_NoSort;
     if (ImGui::BeginTable(("Prices##" + request_id).c_str(), 4, flags))
     {
-        add_header(request_id);
+        const std::string url = get_url_for_request_id(request_id);
+        add_header(request_id, url);
 
         if (API::COMMANDS_LIST.find(request_id) != API::COMMANDS_LIST.end())
             get_row_data(kv, request_id);
