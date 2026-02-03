@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.6.0 - 2026-02-23
+
+- Added open GW Wiki Link in in Browser on double click on header row
+- Changed Addon Icon
+- Added Torment/Doom/Impact/Para Sigil
+
 ## 0.5.1 - 2025-09-28
 
 - Added charm of brilliance forging
