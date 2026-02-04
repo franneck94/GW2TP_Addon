@@ -410,7 +410,7 @@ namespace
 int Render::render_table(const std::string &request_id)
 {
     const auto &kv = data.api_data[request_id];
-    if (API::COMMANDS_LIST.find(request_id) == API::COMMANDS_LIST.end() || data.api_data.find(request_id) == data.api_data.end() || data.api_data[request_id].empty())
+    if (API::COMMANDS.find(request_id) == API::COMMANDS.end() || data.api_data.find(request_id) == data.api_data.end() || data.api_data[request_id].empty())
     {
         ImGui::Text("No data yet for %s", request_id.c_str());
 
@@ -423,7 +423,7 @@ int Render::render_table(const std::string &request_id)
         const std::string url = get_url_for_request_id(request_id);
         add_header(request_id, url);
 
-        if (API::COMMANDS_LIST.find(request_id) != API::COMMANDS_LIST.end())
+        if (API::COMMANDS.find(request_id) != API::COMMANDS.end())
             get_row_data(kv, request_id);
 
         ImGui::EndTable();
@@ -513,10 +513,12 @@ void Render::table_child()
     ImGui::BeginChild("ScrollableContent", ImVec2(window_width, -1.0), false, ImGuiWindowFlags_AlwaysAutoResize);
 
     auto idx = 0U;
-    render_tables_for_commands(API::REGULAR_COMMANDS_LIST, idx);
-    render_tables_for_commands(API::RUNE_COMMANDS_LIST, idx);
-    render_tables_for_commands(API::SIGIL_COMMANDS_LIST, idx);
-    render_tables_for_commands(API::RELIC_COMMANDS_LIST, idx);
+    render_tables_for_commands(API::OTHER_COMMANDS, idx);
+    render_tables_for_commands(API::GEAR_COMMANDS, idx);
+    render_tables_for_commands(API::FORGE_COMMANDS, idx);
+    render_tables_for_commands(API::RUNE_COMMANDS, idx);
+    render_tables_for_commands(API::SIGIL_COMMANDS, idx);
+    render_tables_for_commands(API::RELIC_COMMANDS, idx);
 
     ImGui::EndChild();
 }
