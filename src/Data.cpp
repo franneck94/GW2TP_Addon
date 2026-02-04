@@ -55,7 +55,7 @@ void Data::requesting()
 
         const auto &base_url = use_localhost ? API::LOCAL_API_URL : API::PRODUCTION_API_URL;
 
-        for (auto command : API::COMMANDS_LIST)
+        for (auto command : API::COMMANDS)
         {
             if (command == "ecto")
                 command = "price?item_id=19721";
