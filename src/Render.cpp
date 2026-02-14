@@ -684,20 +684,29 @@ void Render::top_section_child()
     auto *checkbox_label3 = "Use localhost server";
 
     static bool show_forge_cmd = true;
-    static bool show_server_cmd = false;
+    static bool show_server_cmd = true;
+    static int num_forges = 0;
 
+    // Calculate total width for centering
+    float input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
     float button1_width = ImGui::CalcTextSize(checkbox_label1).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     float button2_width = ImGui::CalcTextSize(checkbox_label2).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     float checkbox_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(checkbox_label3).x;
-    float spacing = ImGui::GetStyle().ItemSpacing.x;
-    float total_width = button1_width + spacing + button2_width + spacing + checkbox_width;
+    float spacing = ImGui::GetStyle().ItemSpacing.x * 3; // 3 SameLine() calls
+    float total_width = input_width + button1_width + button2_width + checkbox_width + spacing;
 
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - total_width) * 0.5f);
+
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::InputInt("Num forges", &num_forges, 1, 250);
+
+    ImGui::SameLine();
 
     if (ImGui::Button(checkbox_label1))
     {
         auto forge_script_path = (AddonPath / "GW2_Forge" / "GW2MysticForge-0.1.0" / "mystic_forge" / "__init__.py").string();
-        start_python_script(forge_script_path, "", show_forge_cmd);
+        const auto forge_args = "-n " + std::to_string(num_forges);
+        start_python_script(forge_script_path, forge_args, show_forge_cmd);
     }
 
     ImGui::SameLine();
@@ -720,19 +729,11 @@ void Render::top_section_child()
         first_load = false;
     }
 
-    // Add checkboxes for command window visibility
-    ImGui::Spacing();
-
-    // Center the cmd window checkboxes
     float cmd_checkbox1_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Forge CMD").x;
     float cmd_checkbox2_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Server CMD").x;
-    float cmd_total_width = cmd_checkbox1_width + spacing + cmd_checkbox2_width;
+    float cmd_total_width = cmd_checkbox1_width + 10.0f + cmd_checkbox2_width;
 
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - cmd_total_width) * 0.5f);
-
-    ImGui::Checkbox("Show Forge CMD", &show_forge_cmd);
-    ImGui::SameLine();
-    ImGui::Checkbox("Show Server CMD", &show_server_cmd);
 
     auto *btn_label = "Refresh Data";
     center_next_element(btn_label);
