@@ -30,8 +30,6 @@ void AddonOptions();
 
 HMODULE hSelf;
 AddonDefinition AddonDef{};
-std::filesystem::path AddonPath;
-std::filesystem::path SettingsPath;
 Render render{Settings::ShowWindow};
 
 void ToggleShowWindowGW2TP(const char *keybindIdentifier)

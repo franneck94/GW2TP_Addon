@@ -1,6 +1,8 @@
 #ifndef SHARED_H
 #define SHARED_H
 
+#include <filesystem>
+
 #include "mumble/Mumble.h"
 #include "nexus/Nexus.h"
 #include "rtapi/RTAPI.hpp"
@@ -11,5 +13,8 @@ extern RTAPI::RealTimeData *RTAPIData;
 
 extern const char* KB_TOGGLE_GW2TP;
 extern const char* ADDON_NAME;
+
+extern std::filesystem::path AddonPath;
+extern std::filesystem::path SettingsPath;
 
 #endif

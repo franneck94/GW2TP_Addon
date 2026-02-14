@@ -1,9 +1,30 @@
+#include <windows.h>
+
+#include <shellapi.h>
+#include <shlwapi.h>
+#include <urlmon.h>
+#include <wininet.h>
+
+#pragma comment(lib, "wininet.lib")
+#pragma comment(lib, "urlmon.lib")
+#pragma comment(lib, "shlwapi.lib")
+
+#include <DirectXMath.h>
+#include <Windows.h>
+#include <d3d11.h>
+#include <dxgi.h>
+
 #include <chrono>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <list>
 #include <map>
+#include <mutex>
 #include <ranges>
 #include <string>
+#include <vector>
 
 #include "httpclient/httpclient.h"
 #include "imgui.h"
@@ -12,14 +33,145 @@
 #include "Constants.h"
 #include "Data.h"
 #include "Render.h"
-
-// Windows headers for URL opening
-#include <windows.h>
-#include <shellapi.h>
+#include "Shared.h"
 
 namespace
 {
-    std::string get_url_for_request_id(const std::string& request_id)
+
+    bool DownloadFile(const std::string &url, const std::filesystem::path &outputPath)
+    {
+        try
+        {
+            (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started ZIP Downloading");
+
+            const auto hr = URLDownloadToFileA(nullptr, url.c_str(), outputPath.string().c_str(), 0, nullptr);
+            return SUCCEEDED(hr);
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "ZIP downloading failed.");
+            return false;
+        }
+    }
+
+    bool ExtractZipFile(const std::filesystem::path &zipPath, const std::filesystem::path &extractPath)
+    {
+        try
+        {
+            (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started ZIP Extracting");
+
+            const auto psCommand = "powershell.exe -Command \"Expand-Archive -Path '" + zipPath.string() +
+                                   "' -DestinationPath '" + extractPath.string() + "' -Force\"";
+
+            STARTUPINFOA si = {sizeof(si)};
+            PROCESS_INFORMATION pi = {};
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = SW_HIDE;
+
+            if (CreateProcessA(nullptr,
+                               const_cast<char *>(psCommand.c_str()),
+                               nullptr,
+                               nullptr,
+                               FALSE,
+                               0,
+                               nullptr,
+                               nullptr,
+                               &si,
+                               &pi))
+            {
+                (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", "Started ZIP extraction process.");
+                WaitForSingleObject(pi.hProcess, 30000); // Wait max 30 seconds
+                DWORD exitCode;
+                GetExitCodeProcess(pi.hProcess, &exitCode);
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+
+                if (exitCode != 0)
+                {
+                    auto errorMsg = "ZIP extraction failed with exit code: " + std::to_string(exitCode);
+                    (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", errorMsg.c_str());
+                }
+
+                return exitCode == 0;
+            }
+
+            DWORD createProcessError = GetLastError();
+            auto errorMsg = "Create Process Failed with error code: " + std::to_string(createProcessError);
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
+            return false;
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "ZIP extraction failed.");
+            return false;
+        }
+    }
+
+    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url)
+    {
+        std::thread([addonPath, data_url]()
+                    {
+        try
+        {
+            auto temp_zip_path = addonPath / "temp_GW2RotaHelper.zip";
+            auto extract_path = addonPath;
+            (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Download Thread.");
+
+            if (DownloadFile(data_url, temp_zip_path))
+            {
+                std::filesystem::create_directories(addonPath);
+
+                if (ExtractZipFile(temp_zip_path, extract_path))
+                {
+                    std::filesystem::remove(temp_zip_path);
+                }
+                else
+                {
+                    std::filesystem::remove(temp_zip_path);
+                }
+            }
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "DownloadAndExtractDataAsync failed.");
+        } })
+            .detach();
+    }
+
+    void DropFiles(const std::filesystem::path &path)
+    {
+        try
+        {
+            if (std::filesystem::exists(path) && std::filesystem::is_directory(path))
+            {
+                for (const auto &entry : std::filesystem::directory_iterator(path))
+                {
+                    if (entry.is_regular_file())
+                    {
+                        std::filesystem::remove(entry.path());
+                    }
+                }
+
+                (void)APIDefs->Log(ELogLevel_INFO,
+                                   "GW2TP",
+                                   ("Removed old build files from " + path.string() + " directory").c_str());
+            }
+        }
+        catch (const std::filesystem::filesystem_error &e)
+        {
+            auto errorMsg = "Error removing old builds from " + path.string() + " directory: " + std::string(e.what());
+            (void)APIDefs->Log(ELogLevel_WARNING, "GW2TP", errorMsg.c_str());
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(
+                ELogLevel_WARNING,
+                "GW2TP",
+                ("Unknown error while removing old builds from " + path.string() + " directory").c_str());
+        }
+    }
+
+    std::string get_url_for_request_id(const std::string &request_id)
     {
         static const std::map<std::string, std::string> url_map = {
             {"rare_gear_salvage", "https://wiki.guildwars2.com/wiki/Piece_of_Rare_Unidentified_Gear/Salvage_Rate"},
@@ -41,14 +193,13 @@ namespace
             {"sigil_of_doom", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Doom"},
             {"sigil_of_torment", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Torment"},
             {"sigil_of_bursting", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Bursting"},
-            {"sigil_of_paralyzation", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Paralyzation"}
-        };
+            {"sigil_of_paralyzation", "https://wiki.guildwars2.com/wiki/Superior_Sigil_of_Paralyzation"}};
 
         auto it = url_map.find(request_id);
         return (it != url_map.end()) ? it->second : "";
     }
 
-    void open_url_in_browser(const std::string& url)
+    void open_url_in_browser(const std::string &url)
     {
         if (!url.empty())
         {
@@ -102,7 +253,7 @@ namespace
         ImGui::Text("%d", price.copper);
     }
 
-    void add_header(const std::string name, const std::string& url = "")
+    void add_header(const std::string name, const std::string &url = "")
     {
         const auto transformed_name = get_clean_category_name(name, false);
 
@@ -525,8 +676,57 @@ void Render::table_child()
 
 void Render::render()
 {
+    static auto started_gw2tp_download = false;
+    static auto started_forge_download = false;
+    bool has_gw2tp_files = false;
+    bool has_forge_files = false;
+
     if (!show_window)
         return;
+
+    auto python_code_dir = SettingsPath / "GW2TP_Python";
+    if (std::filesystem::exists(python_code_dir))
+    {
+        try
+        {
+            has_gw2tp_files = !std::filesystem::is_empty(python_code_dir);
+        }
+        catch (...)
+        {
+            has_gw2tp_files = false;
+        }
+    }
+
+    if (!has_gw2tp_files && !started_gw2tp_download)
+    {
+        const std::string data_url =
+            "https://github.com/franneck94/Gw2TP/archive/refs/tags/1.0.0.zip";
+
+        DownloadAndExtractDataAsync(AddonPath, data_url);
+        started_gw2tp_download = true;
+    }
+
+    auto forge_code_dir = SettingsPath / "GW2_Forge";
+    if (std::filesystem::exists(python_code_dir))
+    {
+        try
+        {
+            has_forge_files = !std::filesystem::is_empty(forge_code_dir);
+        }
+        catch (...)
+        {
+            has_forge_files = false;
+        }
+    }
+
+    if (!has_forge_files && !started_forge_download)
+    {
+        const std::string data_url =
+            "https://github.com/franneck94/GW2MysticForge/releases/tag/0.1.0.zip";
+
+        DownloadAndExtractDataAsync(AddonPath, data_url);
+        started_forge_download = true;
+    }
 
     if (ImGui::Begin("GW2TP", &show_window))
     {
