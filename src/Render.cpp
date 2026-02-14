@@ -107,14 +107,14 @@ namespace
         }
     }
 
-    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url)
+    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url, const std::string dir_name)
     {
-        std::thread([addonPath, data_url]()
+        std::thread([addonPath, data_url, dir_name]()
                     {
         try
         {
-            auto temp_zip_path = addonPath / "temp_GW2RotaHelper.zip";
-            auto extract_path = addonPath;
+            auto temp_zip_path = addonPath / ("temp" + dir_name + ".zip");
+            auto extract_path = addonPath / dir_name;
             (void)APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Download Thread.");
 
             if (DownloadFile(data_url, temp_zip_path))
@@ -702,12 +702,12 @@ void Render::render()
         const std::string data_url =
             "https://github.com/franneck94/Gw2TP/archive/refs/tags/1.0.0.zip";
 
-        DownloadAndExtractDataAsync(AddonPath, data_url);
+        DownloadAndExtractDataAsync(AddonPath, data_url, "GW2TP_Python");
         started_gw2tp_download = true;
     }
 
     auto forge_code_dir = SettingsPath / "GW2_Forge";
-    if (std::filesystem::exists(python_code_dir))
+    if (std::filesystem::exists(forge_code_dir))
     {
         try
         {
@@ -722,9 +722,9 @@ void Render::render()
     if (!has_forge_files && !started_forge_download)
     {
         const std::string data_url =
-            "https://github.com/franneck94/GW2MysticForge/releases/tag/0.1.0.zip";
+            "https://github.com/franneck94/GW2MysticForge/archive/refs/tags/0.1.0.zip";
 
-        DownloadAndExtractDataAsync(AddonPath, data_url);
+        DownloadAndExtractDataAsync(AddonPath, data_url, "GW2_Forge");
         started_forge_download = true;
     }
 
