@@ -250,6 +250,49 @@ namespace
         }
     }
 
+    void start_python_script_with_module(const std::string &working_dir, const std::string &module, const std::string &args = "", bool show_cmd_window = false)
+    {
+        try
+        {
+            std::string command = "cmd /k python -m " + module;
+            if (!args.empty())
+            {
+                command += " " + args;
+            }
+
+            STARTUPINFOA si = {sizeof(si)};
+            PROCESS_INFORMATION pi = {};
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
+
+            if (CreateProcessA(nullptr,
+                               const_cast<char *>(command.c_str()),
+                               nullptr,
+                               nullptr,
+                               FALSE,
+                               0,
+                               nullptr,
+                               working_dir.c_str(),
+                               &si,
+                               &pi))
+            {
+                (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started Python module: " + module + " in " + working_dir).c_str());
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            }
+            else
+            {
+                DWORD createProcessError = GetLastError();
+                auto errorMsg = "Failed to start Python module with error code: " + std::to_string(createProcessError);
+                (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
+            }
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python module execution failed.");
+        }
+    }
+
     std::string get_clean_category_name(const std::string &input, const bool skip_last_two)
     {
         auto view = input | std::views::transform(
@@ -653,7 +696,7 @@ void Render::top_section_child()
 
     if (ImGui::Button(checkbox_label1))
     {
-        auto forge_script_path = (AddonPath / "GW2_Forge" / "GW2MysticForge-0.1.0" / "main.py").string();
+        auto forge_script_path = (AddonPath / "GW2_Forge" / "GW2MysticForge-0.1.0" / "mystic_forge" / "__init__.py").string();
         start_python_script(forge_script_path, "", show_forge_cmd);
     }
 
@@ -661,8 +704,8 @@ void Render::top_section_child()
 
     if (ImGui::Button(checkbox_label2))
     {
-        auto server_script_path = (AddonPath / "GW2TP_Python" / "Gw2TP-1.0.0" / "server.py").string();
-        start_python_script(server_script_path, "", show_server_cmd);
+        auto server_working_dir = (AddonPath / "GW2TP_Python" / "Gw2TP-1.0.0").string();
+        start_python_script_with_module(server_working_dir, "uvicorn", "backend.api:app --reload --port 8000 --host 0.0.0.0", show_server_cmd);
     }
     ImGui::SameLine();
 
