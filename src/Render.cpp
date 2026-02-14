@@ -207,6 +207,49 @@ namespace
         }
     }
 
+    void start_python_script(const std::string &script_path, const std::string &args = "", bool show_cmd_window = false)
+    {
+        try
+        {
+            std::string command = "cmd /k python \"" + script_path + "\"";
+            if (!args.empty())
+            {
+                command += " " + args;
+            }
+
+            STARTUPINFOA si = {sizeof(si)};
+            PROCESS_INFORMATION pi = {};
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
+
+            if (CreateProcessA(nullptr,
+                               const_cast<char *>(command.c_str()),
+                               nullptr,
+                               nullptr,
+                               FALSE,
+                               0,
+                               nullptr,
+                               nullptr,
+                               &si,
+                               &pi))
+            {
+                (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started Python script: " + script_path).c_str());
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            }
+            else
+            {
+                DWORD createProcessError = GetLastError();
+                auto errorMsg = "Failed to start Python script with error code: " + std::to_string(createProcessError);
+                (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
+            }
+        }
+        catch (...)
+        {
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python script execution failed.");
+        }
+    }
+
     std::string get_clean_category_name(const std::string &input, const bool skip_last_two)
     {
         auto view = input | std::views::transform(
@@ -592,9 +635,38 @@ void Render::top_section_child()
 
     ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-    auto *checkbox_label = "Use localhost server";
-    center_next_checkbox(checkbox_label);
-    if (ImGui::Checkbox(checkbox_label, &data.use_localhost))
+    // Center the button group
+    auto *checkbox_label1 = "Start Forge Script";
+    auto *checkbox_label2 = "Start Localhost Server";
+    auto *checkbox_label3 = "Use localhost server";
+
+    static bool show_forge_cmd = true;
+    static bool show_server_cmd = false;
+
+    float button1_width = ImGui::CalcTextSize(checkbox_label1).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    float button2_width = ImGui::CalcTextSize(checkbox_label2).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    float checkbox_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(checkbox_label3).x;
+    float spacing = ImGui::GetStyle().ItemSpacing.x;
+    float total_width = button1_width + spacing + button2_width + spacing + checkbox_width;
+
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - total_width) * 0.5f);
+
+    if (ImGui::Button(checkbox_label1))
+    {
+        auto forge_script_path = (AddonPath / "GW2_Forge" / "GW2MysticForge-0.1.0" / "main.py").string();
+        start_python_script(forge_script_path, "", show_forge_cmd);
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(checkbox_label2))
+    {
+        auto server_script_path = (AddonPath / "GW2TP_Python" / "Gw2TP-1.0.0" / "server.py").string();
+        start_python_script(server_script_path, "", show_server_cmd);
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Checkbox(checkbox_label3, &data.use_localhost))
     {
         data.loaded = false;
         data.requested = false;
@@ -604,6 +676,20 @@ void Render::top_section_child()
         last_refresh_time = std::chrono::steady_clock::now();
         first_load = false;
     }
+
+    // Add checkboxes for command window visibility
+    ImGui::Spacing();
+
+    // Center the cmd window checkboxes
+    float cmd_checkbox1_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Forge CMD").x;
+    float cmd_checkbox2_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Server CMD").x;
+    float cmd_total_width = cmd_checkbox1_width + spacing + cmd_checkbox2_width;
+
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - cmd_total_width) * 0.5f);
+
+    ImGui::Checkbox("Show Forge CMD", &show_forge_cmd);
+    ImGui::SameLine();
+    ImGui::Checkbox("Show Server CMD", &show_server_cmd);
 
     auto *btn_label = "Refresh Data";
     center_next_element(btn_label);
@@ -684,7 +770,7 @@ void Render::render()
     if (!show_window)
         return;
 
-    auto python_code_dir = SettingsPath / "GW2TP_Python";
+    auto python_code_dir = AddonPath / "GW2TP_Python";
     if (std::filesystem::exists(python_code_dir))
     {
         try
@@ -706,7 +792,7 @@ void Render::render()
         started_gw2tp_download = true;
     }
 
-    auto forge_code_dir = SettingsPath / "GW2_Forge";
+    auto forge_code_dir = AddonPath / "GW2_Forge";
     if (std::filesystem::exists(forge_code_dir))
     {
         try
