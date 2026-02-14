@@ -24,6 +24,7 @@
 #include <mutex>
 #include <ranges>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "httpclient/httpclient.h"
@@ -254,42 +255,39 @@ namespace
     {
         try
         {
-            std::string command = "cmd /k python -m " + module;
+            std::string command = "python -m " + module;
             if (!args.empty())
             {
                 command += " " + args;
             }
 
-            STARTUPINFOA si = {sizeof(si)};
-            PROCESS_INFORMATION pi = {};
-            si.dwFlags = STARTF_USESHOWWINDOW;
-            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
+            (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Attempting to start Python module with admin privileges: " + module + " in " + working_dir).c_str());
 
-            if (CreateProcessA(nullptr,
-                               const_cast<char *>(command.c_str()),
-                               nullptr,
-                               nullptr,
-                               FALSE,
-                               0,
-                               nullptr,
-                               working_dir.c_str(),
-                               &si,
-                               &pi))
+            // Use ShellExecuteA with "runas" to launch as administrator
+            HINSTANCE result = ShellExecuteA(
+                nullptr,
+                "runas",                    // Launch as administrator
+                "cmd.exe",
+                ("/c cd /d \"" + working_dir + "\" && " + command).c_str(),
+                working_dir.c_str(),
+                show_cmd_window ? SW_SHOWNORMAL : SW_HIDE
+            );
+
+            // ShellExecuteA returns > 32 on success, <= 32 on error
+            if (reinterpret_cast<intptr_t>(result) > 32)
             {
-                (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started Python module: " + module + " in " + working_dir).c_str());
-                CloseHandle(pi.hProcess);
-                CloseHandle(pi.hThread);
+                (void)APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Successfully started Python module with admin privileges: " + module).c_str());
             }
             else
             {
-                DWORD createProcessError = GetLastError();
-                auto errorMsg = "Failed to start Python module with error code: " + std::to_string(createProcessError);
+                auto errorCode = reinterpret_cast<intptr_t>(result);
+                auto errorMsg = "Failed to start Python module with admin privileges, error code: " + std::to_string(errorCode);
                 (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
             }
         }
         catch (...)
         {
-            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python module execution failed.");
+            (void)APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python module execution with admin privileges failed.");
         }
     }
 
