@@ -28,8 +28,8 @@ namespace Settings
             }
             catch (json::parse_error &ex)
             {
-                APIDefs->Log(ELogLevel_WARNING, "GW2TP", "Settings.json could not be parsed.");
-                APIDefs->Log(ELogLevel_WARNING, "GW2TP", ex.what());
+                Globals::APIDefs->Log(ELogLevel_WARNING, "GW2TP", "Settings.json could not be parsed.");
+                Globals::APIDefs->Log(ELogLevel_WARNING, "GW2TP", ex.what());
             }
         }
         Settings::Mutex.unlock();

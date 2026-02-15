@@ -63,7 +63,7 @@ add_library(first_party_libs STATIC
     "src/Settings.cpp"
     "src/Render.cpp"
     "src/Data.cpp"
-    "src/KeyboardCapture.rc"
+    "src/KeyboardCapture.cpp"
 )
 target_include_directories(first_party_libs PUBLIC
     "src"
