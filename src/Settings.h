@@ -11,6 +11,8 @@ using json = nlohmann::json;
 #include "rtapi/RTAPI.hpp"
 
 extern const char *SHOW_WINDOW;
+extern const char *FORGE_VERSION;
+extern const char *BACKEND_VERSION;
 
 namespace Settings
 {
@@ -23,6 +25,8 @@ namespace Settings
     void ToggleShowWindow(std::filesystem::path SettingsPath);
 
     extern bool ShowWindow;
+    extern std::string ForgeVersion;
+    extern std::string BackendVersion;
 }
 
 #endif

@@ -34,23 +34,28 @@
 #include "Constants.h"
 #include "Data.h"
 #include "Render.h"
+#include "Settings.h"
 #include "Shared.h"
 
 namespace
 {
+    bool VersionIsLower(const std::string current_version, const std::string &latest_version)
+    {
+        return current_version < latest_version;
+    }
 
     bool DownloadFile(const std::string &url, const std::filesystem::path &outputPath)
     {
         try
         {
-            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started ZIP Downloading");
+            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Downloading");
 
             const auto hr = URLDownloadToFileA(nullptr, url.c_str(), outputPath.string().c_str(), 0, nullptr);
             return SUCCEEDED(hr);
         }
         catch (...)
         {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "ZIP downloading failed.");
+            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Downloading failed.");
             return false;
         }
     }
@@ -59,7 +64,7 @@ namespace
     {
         try
         {
-            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started ZIP Extracting");
+            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Extracting");
 
             const auto psCommand = "powershell.exe -Command \"Expand-Archive -Path '" + zipPath.string() +
                                    "' -DestinationPath '" + extractPath.string() + "' -Force\"";
@@ -80,7 +85,7 @@ namespace
                                &si,
                                &pi))
             {
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Started ZIP extraction process.");
+                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Started extraction process.");
                 WaitForSingleObject(pi.hProcess, 30000); // Wait max 30 seconds
                 DWORD exitCode;
                 GetExitCodeProcess(pi.hProcess, &exitCode);
@@ -89,7 +94,7 @@ namespace
 
                 if (exitCode != 0)
                 {
-                    auto errorMsg = "ZIP extraction failed with exit code: " + std::to_string(exitCode);
+                    auto errorMsg = "Extraction failed with exit code: " + std::to_string(exitCode);
                     (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", errorMsg.c_str());
                 }
 
@@ -103,32 +108,35 @@ namespace
         }
         catch (...)
         {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "ZIP extraction failed.");
+            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Extraction failed.");
             return false;
         }
     }
 
-    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url, const std::string dir_name)
+    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url, const std::string dir_name, const std::string file_ending = ".zip")
     {
-        std::thread([addonPath, data_url, dir_name]()
+        std::thread([addonPath, data_url, dir_name, file_ending]()
                     {
         try
         {
-            auto temp_zip_path = addonPath / ("temp" + dir_name + ".zip");
+            auto temp_path = addonPath / ("temp" + dir_name + file_ending);
             auto extract_path = addonPath / dir_name;
             (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Download Thread.");
 
-            if (DownloadFile(data_url, temp_zip_path))
+            if (DownloadFile(data_url, temp_path))
             {
-                std::filesystem::create_directories(addonPath);
+                if (data_url.ends_with(".zip"))
+                {
+                    std::filesystem::create_directories(addonPath);
 
-                if (ExtractZipFile(temp_zip_path, extract_path))
-                {
-                    std::filesystem::remove(temp_zip_path);
-                }
-                else
-                {
-                    std::filesystem::remove(temp_zip_path);
+                    if (ExtractZipFile(temp_path, extract_path))
+                    {
+                        std::filesystem::remove(temp_path);
+                    }
+                    else
+                    {
+                        std::filesystem::remove(temp_path);
+                    }
                 }
             }
         }
@@ -154,8 +162,8 @@ namespace
                 }
 
                 (void)Globals::APIDefs->Log(ELogLevel_INFO,
-                                   "GW2TP",
-                                   ("Removed old build files from " + path.string() + " directory").c_str());
+                                            "GW2TP",
+                                            ("Removed old build files from " + path.string() + " directory").c_str());
             }
         }
         catch (const std::filesystem::filesystem_error &e)
@@ -212,7 +220,8 @@ namespace
     {
         try
         {
-            std::string command = "cmd /k python \"" + script_path + "\"";
+            std::string command = R"cmd(/c python \")" + script_path + R"cmd(\" )cmd";
+
             if (!args.empty())
             {
                 command += " " + args;
@@ -253,8 +262,12 @@ namespace
 
     void start_forge_python_script(const std::string &script_path, const std::string &args = "", bool show_cmd_window = false)
     {
+        // Clean up any previous forge process
         if (Globals::ForgeProcessActive)
         {
+            // Try to send Ctrl+C first, then force terminate
+            GenerateConsoleCtrlEvent(CTRL_C_EVENT, Globals::ForgeProcessInfo.dwProcessId);
+            Sleep(1000); // Give it a second to gracefully exit
             TerminateProcess(Globals::ForgeProcessInfo.hProcess, 0);
             CloseHandle(Globals::ForgeProcessInfo.hProcess);
             CloseHandle(Globals::ForgeProcessInfo.hThread);
@@ -278,7 +291,7 @@ namespace
                                nullptr,
                                nullptr,
                                FALSE,
-                               0,
+                               CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE,
                                nullptr,
                                nullptr,
                                &si,
@@ -317,12 +330,11 @@ namespace
             // Use ShellExecuteA with "runas" to launch as administrator
             HINSTANCE result = ShellExecuteA(
                 nullptr,
-                "runas",                    // Launch as administrator
+                "runas", // Launch as administrator
                 "cmd.exe",
                 ("/c cd /d \"" + working_dir + "\" && " + command).c_str(),
                 working_dir.c_str(),
-                show_cmd_window ? SW_SHOWNORMAL : SW_HIDE
-            );
+                show_cmd_window ? SW_SHOWNORMAL : SW_HIDE);
 
             // ShellExecuteA returns > 32 on success, <= 32 on error
             if (reinterpret_cast<intptr_t>(result) > 32)
@@ -855,10 +867,19 @@ void Render::table_child()
 
 void Render::render()
 {
+    static const std::string backend_url =
+        "https://github.com/franneck94/Gw2TP/releases/download/2.0.0/gw2tp-backend.exe";
+    static const std::string latest_backend_version = "2.0.0";
+    static const std::string forge_url =
+        "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
+    static const std::string latest_forge_version = "0.2.0";
+
     static auto started_gw2tp_download = false;
     static auto started_forge_download = false;
     bool has_gw2tp_files = false;
     bool has_forge_files = false;
+    bool is_outdated_gw2tp = false;
+    bool is_outdated_forge = false;
 
     if (!show_window)
         return;
@@ -876,12 +897,21 @@ void Render::render()
         }
     }
 
-    if (!has_gw2tp_files && !started_gw2tp_download)
+    if (has_gw2tp_files && !started_gw2tp_download && VersionIsLower(Settings::BackendVersion, latest_backend_version))
     {
-        const std::string data_url =
-            "https://github.com/franneck94/Gw2TP/archive/refs/tags/1.0.0.zip";
+        is_outdated_gw2tp = true;
+        (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Outdated backend files detected.");
+    }
 
-        DownloadAndExtractDataAsync(Globals::AddonPath, data_url, "GW2TP_Python");
+    if (has_forge_files && !started_forge_download && VersionIsLower(Settings::ForgeVersion, latest_forge_version))
+    {
+        is_outdated_forge = true;
+        (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Outdated forge files detected.");
+    }
+
+    if ((!has_gw2tp_files || is_outdated_gw2tp) && !started_gw2tp_download)
+    {
+        DownloadAndExtractDataAsync(Globals::AddonPath, backend_url, "GW2TP_Python", ".exe");
         started_gw2tp_download = true;
     }
 
@@ -898,12 +928,9 @@ void Render::render()
         }
     }
 
-    if (!has_forge_files && !started_forge_download)
+    if ((!has_forge_files || is_outdated_forge) && !started_forge_download)
     {
-        const std::string data_url =
-            "https://github.com/franneck94/GW2MysticForge/archive/refs/tags/0.1.0.zip";
-
-        DownloadAndExtractDataAsync(Globals::AddonPath, data_url, "GW2_Forge");
+        DownloadAndExtractDataAsync(Globals::AddonPath, forge_url, "GW2_Forge", ".exe");
         started_forge_download = true;
     }
 

@@ -172,9 +172,13 @@ void AddonRender()
 
     if (keyboard.IsKeyDown(VK_CONTROL) && keyboard.WasKeyPressed('C'))
     {
-        if (Globals::ForgeProcessActive)
+        if (Globals::ForgeProcessInfo.hProcess)
         {
             Globals::APIDefs->Log(ELogLevel_INFO, Globals::ADDON_NAME, "Interrupting forge python script...");
+            GenerateConsoleCtrlEvent(CTRL_C_EVENT, Globals::ForgeProcessInfo.dwProcessId);
+            Sleep(500); // Give it a moment to gracefully exit
+            TerminateProcess(Globals::ForgeProcessInfo.hProcess, 0);
+            CloseHandle(Globals::ForgeProcessInfo.hProcess);
             CloseHandle(Globals::ForgeProcessInfo.hThread);
             Globals::ForgeProcessActive = false;
         }
