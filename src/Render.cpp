@@ -113,32 +113,18 @@ namespace
         }
     }
 
-    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url, const std::string dir_name, const std::string file_ending = ".zip")
+    void DownloadAndExtractDataAsync(const std::filesystem::path &addonPath, const std::string &data_url, const std::string filename)
     {
-        std::thread([addonPath, data_url, dir_name, file_ending]()
+        std::thread([addonPath, data_url, filename]()
                     {
         try
         {
-            auto temp_path = addonPath / ("temp" + dir_name + file_ending);
-            auto extract_path = addonPath / dir_name;
+            auto extract_path = addonPath / filename;
+
             (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Download Thread.");
 
-            if (DownloadFile(data_url, temp_path))
-            {
-                if (data_url.ends_with(".zip"))
-                {
-                    std::filesystem::create_directories(addonPath);
-
-                    if (ExtractZipFile(temp_path, extract_path))
-                    {
-                        std::filesystem::remove(temp_path);
-                    }
-                    else
-                    {
-                        std::filesystem::remove(temp_path);
-                    }
-                }
-            }
+            if (DownloadFile(data_url, extract_path))
+                Settings::Save(Globals::SettingsPath);
         }
         catch (...)
         {
@@ -216,11 +202,11 @@ namespace
         }
     }
 
-    void start_python_script(const std::string &script_path, const std::string &args = "", bool show_cmd_window = false)
+    void start_executable(const std::string &exe_path, const std::string &args = "", bool show_cmd_window = false)
     {
         try
         {
-            std::string command = R"cmd(/c python \")" + script_path + R"cmd(\" )cmd";
+            std::string command = "cmd /k \"" + exe_path + "\"";
 
             if (!args.empty())
             {
@@ -243,114 +229,20 @@ namespace
                                &si,
                                &pi))
             {
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started Python script: " + script_path).c_str());
+                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started executable: " + exe_path).c_str());
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
             }
             else
             {
                 DWORD createProcessError = GetLastError();
-                auto errorMsg = "Failed to start Python script with error code: " + std::to_string(createProcessError);
+                auto errorMsg = "Failed to start executable with error code: " + std::to_string(createProcessError);
                 (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
             }
         }
         catch (...)
         {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python script execution failed.");
-        }
-    }
-
-    void start_forge_python_script(const std::string &script_path, const std::string &args = "", bool show_cmd_window = false)
-    {
-        // Clean up any previous forge process
-        if (Globals::ForgeProcessActive)
-        {
-            // Try to send Ctrl+C first, then force terminate
-            GenerateConsoleCtrlEvent(CTRL_C_EVENT, Globals::ForgeProcessInfo.dwProcessId);
-            Sleep(1000); // Give it a second to gracefully exit
-            TerminateProcess(Globals::ForgeProcessInfo.hProcess, 0);
-            CloseHandle(Globals::ForgeProcessInfo.hProcess);
-            CloseHandle(Globals::ForgeProcessInfo.hThread);
-            Globals::ForgeProcessActive = false;
-        }
-
-        try
-        {
-            std::string command = "cmd /k python \"" + script_path + "\"";
-            if (!args.empty())
-            {
-                command += " " + args;
-            }
-
-            STARTUPINFOA si = {sizeof(si)};
-            si.dwFlags = STARTF_USESHOWWINDOW;
-            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
-
-            if (CreateProcessA(nullptr,
-                               const_cast<char *>(command.c_str()),
-                               nullptr,
-                               nullptr,
-                               FALSE,
-                               CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE,
-                               nullptr,
-                               nullptr,
-                               &si,
-                               &Globals::ForgeProcessInfo))
-            {
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started Forge Python script: " + script_path).c_str());
-                Globals::ForgeProcessActive = true;
-            }
-            else
-            {
-                DWORD createProcessError = GetLastError();
-                auto errorMsg = "Failed to start Forge Python script with error code: " + std::to_string(createProcessError);
-                (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
-                Globals::ForgeProcessActive = false;
-            }
-        }
-        catch (...)
-        {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Forge Python script execution failed.");
-            Globals::ForgeProcessActive = false;
-        }
-    }
-
-    void start_python_script_with_module(const std::string &working_dir, const std::string &module, const std::string &args = "", bool show_cmd_window = false)
-    {
-        try
-        {
-            std::string command = "python -m " + module;
-            if (!args.empty())
-            {
-                command += " " + args;
-            }
-
-            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Attempting to start Python module with admin privileges: " + module + " in " + working_dir).c_str());
-
-            // Use ShellExecuteA with "runas" to launch as administrator
-            HINSTANCE result = ShellExecuteA(
-                nullptr,
-                "runas", // Launch as administrator
-                "cmd.exe",
-                ("/c cd /d \"" + working_dir + "\" && " + command).c_str(),
-                working_dir.c_str(),
-                show_cmd_window ? SW_SHOWNORMAL : SW_HIDE);
-
-            // ShellExecuteA returns > 32 on success, <= 32 on error
-            if (reinterpret_cast<intptr_t>(result) > 32)
-            {
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Successfully started Python module with admin privileges: " + module).c_str());
-            }
-            else
-            {
-                auto errorCode = reinterpret_cast<intptr_t>(result);
-                auto errorMsg = "Failed to start Python module with admin privileges, error code: " + std::to_string(errorCode);
-                (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
-            }
-        }
-        catch (...)
-        {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Python module execution with admin privileges failed.");
+            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Executable execution failed.");
         }
     }
 
@@ -765,17 +657,17 @@ void Render::top_section_child()
 
     if (ImGui::Button(checkbox_label1))
     {
-        auto forge_script_path = (Globals::AddonPath / "GW2_Forge" / "GW2MysticForge-0.1.0" / "mystic_forge" / "__init__.py").string();
+        auto forge_exe_path = (Globals::AddonPath / "GW2_Forge.exe").string();
         const auto forge_args = "-n " + std::to_string(num_forges);
-        start_forge_python_script(forge_script_path, forge_args, show_forge_cmd);
+        start_executable(forge_exe_path, forge_args, show_forge_cmd);
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button(checkbox_label2))
     {
-        auto server_working_dir = (Globals::AddonPath / "GW2TP_Python" / "Gw2TP-1.0.0").string();
-        start_python_script_with_module(server_working_dir, "uvicorn", "backend.api:app --reload --port 8000 --host 0.0.0.0", show_server_cmd);
+        auto server_exe_path = (Globals::AddonPath / "GW2TP_Python.exe").string();
+        start_executable(server_exe_path, "server.exe", show_server_cmd);
     }
     ImGui::SameLine();
 
@@ -884,18 +776,10 @@ void Render::render()
     if (!show_window)
         return;
 
-    auto python_code_dir = Globals::AddonPath / "GW2TP_Python";
-    if (std::filesystem::exists(python_code_dir))
-    {
-        try
-        {
-            has_gw2tp_files = !std::filesystem::is_empty(python_code_dir);
-        }
-        catch (...)
-        {
-            has_gw2tp_files = false;
-        }
-    }
+    auto backend_exe = Globals::AddonPath / "GW2_Forge.exe";
+    has_gw2tp_files = std::filesystem::exists(backend_exe);
+    auto forge_code_dir = Globals::AddonPath / "GW2TP_Python.exe";
+    has_forge_files = std::filesystem::exists(forge_code_dir);
 
     if (has_gw2tp_files && !started_gw2tp_download && VersionIsLower(Settings::BackendVersion, latest_backend_version))
     {
@@ -911,27 +795,16 @@ void Render::render()
 
     if ((!has_gw2tp_files || is_outdated_gw2tp) && !started_gw2tp_download)
     {
-        DownloadAndExtractDataAsync(Globals::AddonPath, backend_url, "GW2TP_Python", ".exe");
         started_gw2tp_download = true;
-    }
-
-    auto forge_code_dir = Globals::AddonPath / "GW2_Forge";
-    if (std::filesystem::exists(forge_code_dir))
-    {
-        try
-        {
-            has_forge_files = !std::filesystem::is_empty(forge_code_dir);
-        }
-        catch (...)
-        {
-            has_forge_files = false;
-        }
+        Settings::BackendVersion = latest_backend_version;
+        DownloadAndExtractDataAsync(Globals::AddonPath, backend_url, "GW2TP_Python.exe");
     }
 
     if ((!has_forge_files || is_outdated_forge) && !started_forge_download)
     {
-        DownloadAndExtractDataAsync(Globals::AddonPath, forge_url, "GW2_Forge", ".exe");
         started_forge_download = true;
+        Settings::ForgeVersion = latest_forge_version;
+        DownloadAndExtractDataAsync(Globals::AddonPath, forge_url, "GW2_Forge.exe");
     }
 
     if (ImGui::Begin("GW2TP", &show_window))
