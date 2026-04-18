@@ -626,28 +626,40 @@ void Render::top_section_child()
 {
     static auto last_refresh_time = std::chrono::steady_clock::now();
     static bool first_load = true;
+    static bool server_started = false;
+
+    if (!server_started)
+    {
+        auto server_exe_path = (Globals::AddonPath / "GW2TP_Python.exe").string();
+        if (std::filesystem::exists(server_exe_path))
+        {
+            start_executable(server_exe_path, "server.exe", false);
+            server_started = true;
+            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Auto-started localhost server on first render");
+        }
+    }
 
     const auto window_width = ImGui::GetWindowContentRegionWidth();
 
     ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-    // Center the button group
-    auto *checkbox_label1 = "Start Forge Script";
-    auto *checkbox_label2 = "Start Localhost Server";
-    auto *checkbox_label3 = "Use localhost server";
+    // UI elements in a single line - calculate total width for centering
+    const auto* forge_button_label = "Start Forge Script";
+    const auto* refresh_button_label = "Refresh Data";
+    const auto* loading_label = "Loading...";
 
     static bool show_forge_cmd = true;
-    static bool show_server_cmd = true;
     static int num_forges = 0;
 
-    // Calculate total width for centering
-    float input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
-    float button1_width = ImGui::CalcTextSize(checkbox_label1).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    float button2_width = ImGui::CalcTextSize(checkbox_label2).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    float checkbox_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(checkbox_label3).x;
-    float spacing = ImGui::GetStyle().ItemSpacing.x * 3; // 3 SameLine() calls
-    float total_width = input_width + button1_width + button2_width + checkbox_width + spacing;
+    // Calculate total width of all elements
+    const auto input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
+    const auto button1_width = ImGui::CalcTextSize(forge_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const auto button2_width = ImGui::CalcTextSize(refresh_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const auto loading_width = ImGui::CalcTextSize(loading_label).x;
+    const auto spacing = ImGui::GetStyle().ItemSpacing.x * 2; // 2 SameLine() calls
+    const auto total_width = input_width + button1_width + spacing + (data.loaded ? button2_width : loading_width);
 
+    // Center the group
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - total_width) * 0.5f);
 
     ImGui::SetNextItemWidth(100.0f);
@@ -655,50 +667,22 @@ void Render::top_section_child()
 
     ImGui::SameLine();
 
-    if (ImGui::Button(checkbox_label1))
+    if (ImGui::Button(forge_button_label))
     {
-        auto forge_exe_path = (Globals::AddonPath / "GW2_Forge.exe").string();
+        const auto forge_exe_path = (Globals::AddonPath / "GW2_Forge.exe").string();
         const auto forge_args = "-n " + std::to_string(num_forges);
         start_executable(forge_exe_path, forge_args, show_forge_cmd);
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button(checkbox_label2))
-    {
-        auto server_exe_path = (Globals::AddonPath / "GW2TP_Python.exe").string();
-        start_executable(server_exe_path, "server.exe", show_server_cmd);
-    }
-    ImGui::SameLine();
-
-    if (ImGui::Checkbox(checkbox_label3, &data.use_localhost))
-    {
-        data.loaded = false;
-        data.requested = false;
-        data.api_data.clear();
-        data.futures.clear();
-        data.requesting();
-        last_refresh_time = std::chrono::steady_clock::now();
-        first_load = false;
-    }
-
-    float cmd_checkbox1_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Forge CMD").x;
-    float cmd_checkbox2_width = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Server CMD").x;
-    float cmd_total_width = cmd_checkbox1_width + 10.0f + cmd_checkbox2_width;
-
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - cmd_total_width) * 0.5f);
-
-    auto *btn_label = "Refresh Data";
-    center_next_element(btn_label);
     if (!data.loaded)
     {
-        auto *text_label = "Loading...";
-        center_next_element(text_label, true);
-        ImGui::Text(text_label);
+        ImGui::Text(loading_label);
     }
     else
     {
-        if (ImGui::Button(btn_label))
+        if (ImGui::Button(refresh_button_label))
         {
             data.loaded = false;
             data.requested = false;

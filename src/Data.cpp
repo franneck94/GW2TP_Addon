@@ -53,7 +53,7 @@ void Data::requesting()
         std::wcout << "Requesting data from API...\n";
         futures.clear();
 
-        const auto &base_url = use_localhost ? API::LOCAL_API_URL : API::PRODUCTION_API_URL;
+        const auto &base_url = API::LOCAL_API_URL;
 
         for (auto command : API::COMMANDS)
         {

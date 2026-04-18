@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.7.0 - 2026-02-23
+
+- localhost server is now always used and auto launched
+
 ## 0.6.0 - 2026-02-23
 
 - Added open GW Wiki Link in in Browser on double click on header row
