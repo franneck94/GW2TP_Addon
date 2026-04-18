@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.7.0 - 2026-02-23
+## 0.7.0 - 2026-04-18
 
 - localhost server is now always used and auto launched
 
