@@ -647,9 +647,10 @@ void Render::top_section_child()
     ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     // UI elements in a single line - calculate total width for centering
-    const auto* forge_button_label = "Start Forge Script";
-    const auto* refresh_button_label = "Refresh Data";
-    const auto* loading_label = "Loading...";
+    const auto *forge_button_label = "Start Forge Script";
+    const auto *refresh_button_label = "Refresh Data";
+    const auto *loading_label = "Loading...";
+    const auto *clicker_button_label = "Start Auto Clicker";
 
     static bool show_forge_cmd = true;
     static int num_forges = 0;
@@ -658,9 +659,10 @@ void Render::top_section_child()
     const auto input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
     const auto button1_width = ImGui::CalcTextSize(forge_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto button2_width = ImGui::CalcTextSize(refresh_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const auto clicker_width = ImGui::CalcTextSize(clicker_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto loading_width = ImGui::CalcTextSize(loading_label).x;
     const auto spacing = ImGui::GetStyle().ItemSpacing.x * 2; // 2 SameLine() calls
-    const auto total_width = input_width + button1_width + spacing + (data.loaded ? button2_width : loading_width);
+    const auto total_width = input_width + button1_width + clicker_width + spacing + (data.loaded ? button2_width : loading_width);
 
     // Center the group
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - total_width) * 0.5f);
@@ -695,6 +697,10 @@ void Render::top_section_child()
             last_refresh_time = std::chrono::steady_clock::now();
             first_load = false;
         }
+    }
+
+    if (ImGui::Button(clicker_button_label))
+    {
     }
 
     UpdateTimer(last_refresh_time);
