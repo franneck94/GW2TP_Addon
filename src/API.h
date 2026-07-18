@@ -19,6 +19,7 @@ public:
 
     static const inline std::set<std::string> GEAR_COMMANDS = {
         "rare_weapon_craft",
+        "rare_weapon_craft2",
         "rare_gear",
         "rare_gear_salvage",
         "gear_salvage",
@@ -133,6 +134,12 @@ public:
     static const inline std::array<const char *, 3> SIGIL_OF_PARALYZATION_NAMES = CRAFT_NAMES;
 
     static const inline std::array<const char *, 3> RARE_WEAPON_CRAFT_NAMES = {
+        "crafting_cost",
+        "ecto_sell_after_tax",
+        "profit",
+    };
+
+    static const inline std::array<const char *, 3> RARE_WEAPON_CRAFT2_NAMES = {
         "crafting_cost",
         "ecto_sell_after_tax",
         "profit",
