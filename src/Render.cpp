@@ -425,9 +425,9 @@ namespace
             _get_ordered_row_data(API::SIGIL_OF_PARALYZATION_NAMES, rows);
         // gear
         else if (request_id == "krait_shield_craft")
-            _get_ordered_row_data(API::RARE_WEAPON_CRAFT_NAMES, rows);
+            _get_ordered_row_data(API::KRAIT_SHIELD_CRAFT_NAMES, rows);
         else if (request_id == "krait_trident_craft")
-            _get_ordered_row_data(API::RARE_WEAPON_CRAFT2_NAMES, rows);
+            _get_ordered_row_data(API::KRAIT_TRIDENT_CRAFT_NAMES, rows);
         else if (request_id == "rare_gear_salvage")
             _get_ordered_row_data(API::RARE_GEAR_NAMES, rows);
         // gear
