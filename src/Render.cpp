@@ -174,8 +174,8 @@ namespace
             {"common_gear_salvage", "https://wiki.guildwars2.com/wiki/Piece_of_Common_Unidentified_Gear/Salvage_Rate"},
             {"lodestone_forge", "https://fast.farming-community.eu/conversions/spirit-shard"},
             {"charm_brilliance_forge", "https://fast.farming-community.eu/conversions/spirit-shard/charm-of-brilliance"},
-            {"rare_weapon_craft", "https://wiki.guildwars2.com/wiki/Krait_Shell"},
-            {"rare_weapon_craft2", "https://wiki.guildwars2.com/wiki/Krait_Trident"},
+            {"krait_shield_craft", "https://wiki.guildwars2.com/wiki/Krait_Shell"},
+            {"krait_trident_craft", "https://wiki.guildwars2.com/wiki/Krait_Trident"},
             {"thesis_on_masterful_malice", "https://wiki.guildwars2.com/wiki/Thesis_on_Masterful_Malice"},
             {"symbol_enh_forge", "https://fast.farming-community.eu/conversions/spirit-shard/symbol-of-enhancement"},
             {"scholar_rune", "https://wiki.guildwars2.com/wiki/Superior_Rune_of_the_Scholar"},
@@ -424,9 +424,9 @@ namespace
         else if (request_id == "sigil_of_paralyzation")
             _get_ordered_row_data(API::SIGIL_OF_PARALYZATION_NAMES, rows);
         // gear
-        else if (request_id == "rare_weapon_craft")
+        else if (request_id == "krait_shield_craft")
             _get_ordered_row_data(API::RARE_WEAPON_CRAFT_NAMES, rows);
-        else if (request_id == "rare_weapon_craft2")
+        else if (request_id == "krait_trident_craft")
             _get_ordered_row_data(API::RARE_WEAPON_CRAFT2_NAMES, rows);
         else if (request_id == "rare_gear_salvage")
             _get_ordered_row_data(API::RARE_GEAR_NAMES, rows);

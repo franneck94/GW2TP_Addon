@@ -18,8 +18,8 @@ public:
     };
 
     static const inline std::set<std::string> GEAR_COMMANDS = {
-        "rare_weapon_craft",
-        "rare_weapon_craft2",
+        "krait_shield_craft",
+        "krait_trident_craft",
         "rare_gear",
         "rare_gear_salvage",
         "gear_salvage",
