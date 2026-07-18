@@ -1,11 +1,11 @@
 [submodule "rtapi"]
 	path = rtapi
 	url = https://github.com/RaidcoreGG/GW2-RealTime-API-Releases
-	branch = 7d50fe992c2fe9045a1d5ed1e4cc706e44d620bc
+	branch = dbc89dde86fb8846fec4ce45667e79d7df0afb06
 [submodule "mumble"]
 	path = mumble
 	url = https://github.com/RaidcoreGG/RCGG-lib-mumble-api
-	branch = 72c222df934d5f8a6e729bdca18e911fec8a01c4
+	branch = 8c93788c3042dd6b401c0a93d17e34e1d4414e9a
 [submodule "nexus"]
 	path = nexus
 	url = https://github.com/RaidcoreGG/RCGG-lib-nexus-api
