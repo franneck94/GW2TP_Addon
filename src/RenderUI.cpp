@@ -33,6 +33,18 @@
 
 namespace
 {
+    static const std::string backend_url =
+        "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
+    static const std::string latest_backend_version = "3.0.0";
+
+    static const std::string forge_url =
+        "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
+    static const std::string latest_forge_version = "0.2.0";
+
+    static const std::string clicker_url =
+        "https://github.com/franneck94/GW2_AutoClicker/releases/download/0.1.0/GW2_AutoClicker.exe";
+    static const std::string latest_clicker_version = "0.1.0";
+
     bool VersionIsLower(const std::string current_version, const std::string &latest_version)
     {
         return current_version < latest_version;
@@ -298,6 +310,8 @@ void RenderUI::download_and_extract_data_async(const std::filesystem::path &addo
         {
             const auto extract_path = addonPath / filename;
             (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Download Thread.");
+            const auto download_name = "Downloading: " + data_url + ".";
+            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", download_name.c_str());
 
             if (RenderUI::download_file(data_url, extract_path))
                 Settings::Save(Globals::SettingsPath);
@@ -496,18 +510,6 @@ void RenderUI::render_profit_calculator()
 
 void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_point &last_refresh_time)
 {
-    static const std::string backend_url =
-        "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
-    static const std::string latest_backend_version = "3.0.0";
-
-    static const std::string forge_url =
-        "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
-    static const std::string latest_forge_version = "0.2.0";
-
-    static const std::string clicker_url =
-        "https://github.com/franneck94/GW2_AutoClicker/releases/download/0.1.0/GW2_AutoClicker.exe";
-    static const std::string latest_clicker_version = "0.1.0";
-
     static auto started_gw2tp_download = false;
     static auto started_forge_download = false;
     static auto started_clicker_download = false;
@@ -593,6 +595,16 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     const auto second_row_width = input_width + spacing + forge_btn_width + spacing + clicker_input_width + spacing + clicker_btn_width;
 
     center_group_with_width(first_row_width);
+
+    if (ImGui::Button(update_button_label))
+    {
+        RenderUI::download_and_extract_data_async(Globals::AddonPath, forge_url, "GW2_Forge.exe");
+        RenderUI::download_and_extract_data_async(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
+        RenderUI::download_and_extract_data_async(Globals::AddonPath, backend_url, "GW2TP_Python.exe");
+    }
+
+    ImGui::SameLine();
+
     if (data.loaded)
     {
         if (ImGui::Button(refresh_button_label))
@@ -608,18 +620,6 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     else
     {
         ImGui::TextUnformatted(loading_label);
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(update_button_label))
-    {
-        const auto forge_url = "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
-        const auto clicker_url = "https://github.com/franneck94/GW2_AutoClicker/releases/download/0.1.0/GW2_AutoClicker.exe";
-        const auto backend_url = "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
-
-        RenderUI::download_and_extract_data_async(Globals::AddonPath, forge_url, "GW2_Forge.exe");
-        RenderUI::download_and_extract_data_async(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
-        RenderUI::download_and_extract_data_async(Globals::AddonPath, backend_url, "GW2TP_Python.exe");
     }
 
     ImGui::SameLine();
