@@ -13,7 +13,6 @@ public:
 
     static const inline std::set<std::string> OTHER_COMMANDS = {
         "t5_mats_buy",
-        "t5_mats_buy",
         "mats_crafting_compare",
     };
 
