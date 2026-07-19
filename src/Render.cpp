@@ -40,44 +40,48 @@
 
 namespace
 {
-    std::atomic_bool g_auto_clicker_running{false};
-
-    void SendLeftMouseClick()
+    void start_executable(const std::string &exe_path, const std::string &args = "", bool show_cmd_window = false)
     {
-        INPUT input = {};
-        input.type = INPUT_MOUSE;
-        input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP;
-        input.mi.dx = 0;
-        input.mi.dy = 0;
-        input.mi.mouseData = 0;
-        input.mi.time = 0;
-        input.mi.dwExtraInfo = 0;
-
-        const auto sent = SendInput(1, &input, sizeof(INPUT));
-        if (sent != 1)
+        try
         {
-            (void)Globals::APIDefs->Log(ELogLevel_WARNING, "GW2TP", "SendInput failed to enqueue a left mouse click.");
+            std::string command = "cmd /k \"" + exe_path + "\"";
+
+            if (!args.empty())
+            {
+                command += " " + args;
+            }
+
+            STARTUPINFOA si = {sizeof(si)};
+            PROCESS_INFORMATION pi = {};
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
+
+            if (CreateProcessA(nullptr,
+                               const_cast<char *>(command.c_str()),
+                               nullptr,
+                               nullptr,
+                               FALSE,
+                               0,
+                               nullptr,
+                               nullptr,
+                               &si,
+                               &pi))
+            {
+                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started executable: " + exe_path).c_str());
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            }
+            else
+            {
+                DWORD createProcessError = GetLastError();
+                auto errorMsg = "Failed to start executable with error code: " + std::to_string(createProcessError);
+                (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
+            }
         }
-    }
-
-    void RunAutoClicker(const int click_count)
-    {
-        if (click_count <= 0 || g_auto_clicker_running.exchange(true))
-            return;
-
-        std::thread([click_count]()
-                    {
-                        std::this_thread::sleep_for(std::chrono::seconds(3));
-
-                        for (int i = 0; i < click_count && g_auto_clicker_running.load(); ++i)
-                        {
-                            SendLeftMouseClick();
-                            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                        }
-
-                        g_auto_clicker_running.store(false);
-                    })
-            .detach();
+        catch (...)
+        {
+            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Executable execution failed.");
+        }
     }
 
     bool VersionIsLower(const std::string current_version, const std::string &latest_version)
@@ -241,50 +245,6 @@ namespace
         if (!url.empty())
         {
             ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-        }
-    }
-
-    void start_executable(const std::string &exe_path, const std::string &args = "", bool show_cmd_window = false)
-    {
-        try
-        {
-            std::string command = "cmd /k \"" + exe_path + "\"";
-
-            if (!args.empty())
-            {
-                command += " " + args;
-            }
-
-            STARTUPINFOA si = {sizeof(si)};
-            PROCESS_INFORMATION pi = {};
-            si.dwFlags = STARTF_USESHOWWINDOW;
-            si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
-
-            if (CreateProcessA(nullptr,
-                               const_cast<char *>(command.c_str()),
-                               nullptr,
-                               nullptr,
-                               FALSE,
-                               0,
-                               nullptr,
-                               nullptr,
-                               &si,
-                               &pi))
-            {
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started executable: " + exe_path).c_str());
-                CloseHandle(pi.hProcess);
-                CloseHandle(pi.hThread);
-            }
-            else
-            {
-                DWORD createProcessError = GetLastError();
-                auto errorMsg = "Failed to start executable with error code: " + std::to_string(createProcessError);
-                (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
-            }
-        }
-        catch (...)
-        {
-            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Executable execution failed.");
         }
     }
 
@@ -588,6 +548,8 @@ namespace
         float button_width = 100.0f;
         if (ImGui::Button("Calculate", ImVec2(button_width, 0)))
         {
+            (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Calculating profit...");
+
             const auto buy_gold = atoi(buy_gold_str);
             const auto buy_silver = atoi(buy_silver_str);
             const auto buy_copper = atoi(buy_copper_str);
@@ -694,8 +656,10 @@ void Render::top_section_child()
     const auto *clicker_button_label = "Start Auto Clicker";
 
     static bool show_forge_cmd = true;
+    static bool show_clicker_cmd = true;
+
     static int num_forges = 0;
-    static int click_count = 1;
+    static int num_clicks = 1;
 
     // Calculate total width of all elements
     const auto input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
@@ -744,22 +708,15 @@ void Render::top_section_child()
 
     ImGui::SameLine();
     ImGui::SetNextItemWidth(100.0f);
-    ImGui::InputInt("Num Clicks", &click_count, 1, 1000);
+    ImGui::InputInt("Num Clicks", &num_clicks, 1, 1000);
 
     ImGui::SameLine();
 
     if (ImGui::Button(clicker_button_label))
     {
-        if (g_auto_clicker_running.load())
-        {
-            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Stopped auto clicker.");
-            g_auto_clicker_running.store(false);
-        }
-        else
-        {
-            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Started auto clicker.");
-            RunAutoClicker(click_count);
-        }
+        const auto clicker_exe_path = (Globals::AddonPath / "GW2_AutoClicker.exe").string();
+        const auto clicker_args = std::to_string(num_clicks);
+        start_executable(clicker_exe_path, clicker_args, show_clicker_cmd);
     }
 
     UpdateTimer(last_refresh_time);
@@ -814,16 +771,26 @@ void Render::render()
     static const std::string backend_url =
         "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
     static const std::string latest_backend_version = "3.0.0";
+
     static const std::string forge_url =
         "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
     static const std::string latest_forge_version = "0.2.0";
 
+    static const std::string clicker_url =
+        "https://github.com/franneck94/GW2_AutoClicker/releases/download/0.1.0/GW2_AutoClicker.exe";
+    static const std::string latest_clicker_version = "0.1.0";
+
     static auto started_gw2tp_download = false;
     static auto started_forge_download = false;
+    static auto started_clicker_download = false;
+
     bool has_gw2tp_files = false;
     bool has_forge_files = false;
+    bool has_clicker_files = false;
+
     bool is_outdated_gw2tp = false;
     bool is_outdated_forge = false;
+    bool is_outdated_clicker = false;
 
     if (!show_window)
         return;
@@ -832,6 +799,8 @@ void Render::render()
     has_gw2tp_files = std::filesystem::exists(backend_exe);
     auto forge_code_dir = Globals::AddonPath / "GW2TP_Python.exe";
     has_forge_files = std::filesystem::exists(forge_code_dir);
+    auto clicker_exe = Globals::AddonPath / "GW2_AutoClicker.exe";
+    has_clicker_files = std::filesystem::exists(clicker_exe);
 
     if (has_gw2tp_files && !started_gw2tp_download && VersionIsLower(Settings::BackendVersion, latest_backend_version))
     {
@@ -843,6 +812,12 @@ void Render::render()
     {
         is_outdated_forge = true;
         (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Outdated forge files detected.");
+    }
+
+    if (has_clicker_files && !started_clicker_download && VersionIsLower(Settings::ClickerVersion, latest_clicker_version))
+    {
+        is_outdated_clicker = true;
+        (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Outdated clicker files detected.");
     }
 
     if ((!has_gw2tp_files || is_outdated_gw2tp) && !started_gw2tp_download)
@@ -857,6 +832,13 @@ void Render::render()
         started_forge_download = true;
         Settings::ForgeVersion = latest_forge_version;
         DownloadAndExtractDataAsync(Globals::AddonPath, forge_url, "GW2_Forge.exe");
+    }
+
+    if ((!has_clicker_files || is_outdated_clicker) && !started_clicker_download)
+    {
+        started_clicker_download = true;
+        Settings::ClickerVersion = latest_clicker_version;
+        DownloadAndExtractDataAsync(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
     }
 
     if (ImGui::Begin("GW2TP", &show_window))
