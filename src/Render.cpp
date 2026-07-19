@@ -14,6 +14,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -39,6 +40,46 @@
 
 namespace
 {
+    std::atomic_bool g_auto_clicker_running{false};
+
+    void SendLeftMouseClick()
+    {
+        INPUT input = {};
+        input.type = INPUT_MOUSE;
+        input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP;
+        input.mi.dx = 0;
+        input.mi.dy = 0;
+        input.mi.mouseData = 0;
+        input.mi.time = 0;
+        input.mi.dwExtraInfo = 0;
+
+        const auto sent = SendInput(1, &input, sizeof(INPUT));
+        if (sent != 1)
+        {
+            (void)Globals::APIDefs->Log(ELogLevel_WARNING, "GW2TP", "SendInput failed to enqueue a left mouse click.");
+        }
+    }
+
+    void RunAutoClicker(const int click_count)
+    {
+        if (click_count <= 0 || g_auto_clicker_running.exchange(true))
+            return;
+
+        std::thread([click_count]()
+                    {
+                        std::this_thread::sleep_for(std::chrono::seconds(3));
+
+                        for (int i = 0; i < click_count && g_auto_clicker_running.load(); ++i)
+                        {
+                            SendLeftMouseClick();
+                            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        }
+
+                        g_auto_clicker_running.store(false);
+                    })
+            .detach();
+    }
+
     bool VersionIsLower(const std::string current_version, const std::string &latest_version)
     {
         return current_version < latest_version;
@@ -654,15 +695,17 @@ void Render::top_section_child()
 
     static bool show_forge_cmd = true;
     static int num_forges = 0;
+    static int click_count = 1;
 
     // Calculate total width of all elements
     const auto input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
+    const auto clicker_input_width = 60.0f + ImGui::CalcTextSize("Clicks").x + ImGui::GetStyle().ItemInnerSpacing.x;
     const auto button1_width = ImGui::CalcTextSize(forge_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto button2_width = ImGui::CalcTextSize(refresh_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto clicker_width = ImGui::CalcTextSize(clicker_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto loading_width = ImGui::CalcTextSize(loading_label).x;
     const auto spacing = ImGui::GetStyle().ItemSpacing.x * 2; // 2 SameLine() calls
-    const auto total_width = input_width + button1_width + clicker_width + spacing + (data.loaded ? button2_width : loading_width);
+    const auto total_width = input_width + button1_width + clicker_input_width + clicker_width + spacing + (data.loaded ? button2_width : loading_width);
 
     // Center the group
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - total_width) * 0.5f);
@@ -699,8 +742,24 @@ void Render::top_section_child()
         }
     }
 
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::InputInt("Num Clicks", &click_count, 1, 1000);
+
+    ImGui::SameLine();
+
     if (ImGui::Button(clicker_button_label))
     {
+        if (g_auto_clicker_running.load())
+        {
+            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Stopped auto clicker.");
+            g_auto_clicker_running.store(false);
+        }
+        else
+        {
+            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Started auto clicker.");
+            RunAutoClicker(click_count);
+        }
     }
 
     UpdateTimer(last_refresh_time);
@@ -753,8 +812,8 @@ void Render::table_child()
 void Render::render()
 {
     static const std::string backend_url =
-        "https://github.com/franneck94/Gw2TP/releases/download/2.0.0/gw2tp-backend.exe";
-    static const std::string latest_backend_version = "2.0.0";
+        "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
+    static const std::string latest_backend_version = "3.0.0";
     static const std::string forge_url =
         "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
     static const std::string latest_forge_version = "0.2.0";
