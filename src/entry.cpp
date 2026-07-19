@@ -142,12 +142,22 @@ void AddonUnload()
 
     KeyboardCapture::GetInstance().Shutdown();
 
-    if (Globals::ForgeProcessActive)
+    if (Globals::ForgeProcessActive && Globals::ForgeProcessInfo.hProcess)
     {
         TerminateProcess(Globals::ForgeProcessInfo.hProcess, 0);
         CloseHandle(Globals::ForgeProcessInfo.hProcess);
         CloseHandle(Globals::ForgeProcessInfo.hThread);
         Globals::ForgeProcessActive = false;
+        Globals::ForgeProcessInfo = {};
+    }
+
+    if (Globals::AutoClickerProcessActive && Globals::AutoClickerProcessInfo.hProcess)
+    {
+        TerminateProcess(Globals::AutoClickerProcessInfo.hProcess, 0);
+        CloseHandle(Globals::AutoClickerProcessInfo.hProcess);
+        CloseHandle(Globals::AutoClickerProcessInfo.hThread);
+        Globals::AutoClickerProcessActive = false;
+        Globals::AutoClickerProcessInfo = {};
     }
 
     Settings::Save(Globals::SettingsPath);
@@ -181,6 +191,19 @@ void AddonRender()
             CloseHandle(Globals::ForgeProcessInfo.hProcess);
             CloseHandle(Globals::ForgeProcessInfo.hThread);
             Globals::ForgeProcessActive = false;
+            Globals::ForgeProcessInfo = {};
+        }
+
+        if (Globals::AutoClickerProcessInfo.hProcess)
+        {
+            Globals::APIDefs->Log(ELogLevel_INFO, Globals::ADDON_NAME, "Interrupting auto-clicker process...");
+            GenerateConsoleCtrlEvent(CTRL_C_EVENT, Globals::AutoClickerProcessInfo.dwProcessId);
+            Sleep(500);
+            TerminateProcess(Globals::AutoClickerProcessInfo.hProcess, 0);
+            CloseHandle(Globals::AutoClickerProcessInfo.hProcess);
+            CloseHandle(Globals::AutoClickerProcessInfo.hThread);
+            Globals::AutoClickerProcessActive = false;
+            Globals::AutoClickerProcessInfo = {};
         }
     }
 

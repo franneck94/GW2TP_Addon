@@ -25,6 +25,8 @@ namespace Globals
     extern std::vector<uint32_t> CurrentlyPressedKeys;
     extern PROCESS_INFORMATION ForgeProcessInfo;
     extern bool ForgeProcessActive;
+    extern PROCESS_INFORMATION AutoClickerProcessInfo;
+    extern bool AutoClickerProcessActive;
 }
 
 #endif

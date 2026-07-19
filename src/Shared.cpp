@@ -15,4 +15,6 @@ namespace Globals
     std::vector<uint32_t> CurrentlyPressedKeys;
     PROCESS_INFORMATION ForgeProcessInfo = {};
     bool ForgeProcessActive = false;
+    PROCESS_INFORMATION AutoClickerProcessInfo = {};
+    bool AutoClickerProcessActive = false;
 }

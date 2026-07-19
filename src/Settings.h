@@ -13,6 +13,7 @@ using json = nlohmann::json;
 extern const char *SHOW_WINDOW;
 extern const char *FORGE_VERSION;
 extern const char *BACKEND_VERSION;
+extern const char *CLICKER_VERSION;
 
 namespace Settings
 {
@@ -27,6 +28,7 @@ namespace Settings
     extern bool ShowWindow;
     extern std::string ForgeVersion;
     extern std::string BackendVersion;
+    extern std::string ClickerVersion;
 }
 
 #endif
