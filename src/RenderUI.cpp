@@ -239,6 +239,13 @@ bool RenderUI::download_file(const std::string &url, const std::filesystem::path
     try
     {
         (void)Globals::APIDefs->Log(ELogLevel_DEBUG, "GW2TP", "Started Downloading");
+
+        if (std::filesystem::exists(outputPath))
+        {
+            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Deleting old file before download: " + outputPath.string()).c_str());
+            std::filesystem::remove(outputPath);
+        }
+
         const auto hr = URLDownloadToFileA(nullptr, url.c_str(), outputPath.string().c_str(), 0, nullptr);
         return SUCCEEDED(hr);
     }
@@ -635,11 +642,16 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     {
         const auto forge_exe_path = (Globals::AddonPath / "GW2_Forge.exe").string();
         const auto forge_args = "-n " + std::to_string(num_forges);
-        RenderUI::start_executable(forge_exe_path, forge_args, show_forge_cmd);
+
+#ifdef _DEBUG
+        RenderUI::start_executable(forge_exe_path, forge_args, true);
+#else
+        RenderUI::start_executable(forge_exe_path, forge_args, false);
+#endif
     }
 
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(60.0f);
+    ImGui::SetNextItemWidth(100.0f);
     ImGui::InputInt("Clicks", &num_clicks, 1, 1000);
 
     ImGui::SameLine();

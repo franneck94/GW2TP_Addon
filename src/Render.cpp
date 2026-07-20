@@ -293,7 +293,7 @@ void Render::top_section_child()
     }
 
     const auto window_width = ImGui::GetWindowContentRegionWidth();
-    ImGui::BeginChild("TopSection", ImVec2(window_width, 160.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("TopSection", ImVec2(window_width, 180.0f), false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     RenderUI::render_top_controls(data, last_refresh_time);
     ImGui::Spacing();
