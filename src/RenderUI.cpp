@@ -575,8 +575,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
         DownloadAndExtractDataAsync(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
     }
 
-    static bool show_forge_cmd = true;
-    static bool show_clicker_cmd = true;
+    static bool launch_in_background = false;
     static int num_forges = 0;
     static int num_clicks = 1;
 
@@ -585,6 +584,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     const auto *loading_label = "Loading...";
     const auto *clicker_button_label = "Start Auto Clicker";
     const auto *update_button_label = "Update Scripts";
+    const auto *launch_in_background_label = "Launch in Background";
     char time_text[50];
     RenderUI::render_last_update(time_text, sizeof(time_text), last_refresh_time);
 
@@ -594,11 +594,12 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     const auto refresh_btn_width = ImGui::CalcTextSize(refresh_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto clicker_btn_width = ImGui::CalcTextSize(clicker_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto update_btn_width = ImGui::CalcTextSize(update_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const auto launch_in_background_btn_width = ImGui::CalcTextSize(launch_in_background_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto loading_width = ImGui::CalcTextSize(loading_label).x;
     const auto spacing = ImGui::GetStyle().ItemSpacing.x;
     const auto update_text_width = ImGui::CalcTextSize(time_text).x + ImGui::GetStyle().FramePadding.x * 2.0f;
 
-    const auto first_row_width = refresh_btn_width + spacing + update_btn_width + spacing + update_text_width;
+    const auto first_row_width = refresh_btn_width + spacing + update_btn_width + spacing + launch_in_background_btn_width + spacing + update_text_width;
     const auto second_row_width = input_width + spacing + forge_btn_width + spacing + clicker_input_width + spacing + clicker_btn_width;
 
     center_group_with_width(first_row_width);
@@ -608,6 +609,12 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
         RenderUI::download_and_extract_data_async(Globals::AddonPath, forge_url, "GW2_Forge.exe");
         RenderUI::download_and_extract_data_async(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
         RenderUI::download_and_extract_data_async(Globals::AddonPath, backend_url, "GW2TP_Python.exe");
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Checkbox(launch_in_background_label, &launch_in_background))
+    {
     }
 
     ImGui::SameLine();
@@ -633,6 +640,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     ImGui::TextUnformatted(time_text);
 
     ImGui::Spacing();
+
     center_group_with_width(second_row_width);
     ImGui::SetNextItemWidth(100.0f);
     ImGui::InputInt("Num forges", &num_forges, 1, 250);
@@ -643,11 +651,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
         const auto forge_exe_path = (Globals::AddonPath / "GW2_Forge.exe").string();
         const auto forge_args = "-n " + std::to_string(num_forges);
 
-#ifdef _DEBUG
-        RenderUI::start_executable(forge_exe_path, forge_args, true);
-#else
-        RenderUI::start_executable(forge_exe_path, forge_args, false);
-#endif
+        RenderUI::start_executable(forge_exe_path, forge_args, !launch_in_background);
     }
 
     ImGui::SameLine();
@@ -659,6 +663,6 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     {
         const auto clicker_exe_path = (Globals::AddonPath / "GW2_AutoClicker.exe").string();
         const auto clicker_args = std::to_string(num_clicks);
-        RenderUI::start_executable(clicker_exe_path, clicker_args, show_clicker_cmd);
+        RenderUI::start_executable(clicker_exe_path, clicker_args, !launch_in_background);
     }
 }
