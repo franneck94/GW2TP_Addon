@@ -63,10 +63,11 @@ public:
         return combined;
     }();
 
-    static const inline std::array<const char *, 3> CRAFT_NAMES = {
+    static const inline std::array<const char *, 4> CRAFT_NAMES = {
         "crafting_cost",
         "sell",
         "profit",
+        "calculation_steps",
     };
 
     static const inline std::array<const char *, 4> RARE_GEAR_NAMES = {
@@ -116,33 +117,25 @@ public:
         "destroyer",
     };
 
-    static const inline std::array<const char *, 3> THESIS_MASTERFUL_MALICE = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> THESIS_MASTERFUL_MALICE = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> SCHOLAR_RUNE_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> GUARDIAN_RUNE_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> DRAGONHUNTER_RUNE_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SCHOLAR_RUNE_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> GUARDIAN_RUNE_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> DRAGONHUNTER_RUNE_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> FIREWORKS_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> THIEF_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> ARISTOCRACY_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> FIREWORKS_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> THIEF_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> ARISTOCRACY_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> SIGIL_OF_IMPACT_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> SIGIL_OF_DOOM_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> SIGIL_OF_TORMENT_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> SIGIL_OF_BURSTING_NAMES = CRAFT_NAMES;
-    static const inline std::array<const char *, 3> SIGIL_OF_PARALYZATION_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SIGIL_OF_IMPACT_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SIGIL_OF_DOOM_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SIGIL_OF_TORMENT_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SIGIL_OF_BURSTING_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> SIGIL_OF_PARALYZATION_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> KRAIT_SHIELD_CRAFT_NAMES = {
-        "crafting_cost",
-        "ecto_sell_after_tax",
-        "profit",
-    };
+    static const inline std::array<const char *, 4> KRAIT_SHIELD_CRAFT_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 3> KRAIT_TRIDENT_CRAFT_NAMES = {
-        "crafting_cost",
-        "ecto_sell_after_tax",
-        "profit",
-    };
+    static const inline std::array<const char *, 4> KRAIT_TRIDENT_CRAFT_NAMES = CRAFT_NAMES;
 
     static const inline std::array<const char *, 3> FORGE_ENH_NAMES = {
         "cost",
