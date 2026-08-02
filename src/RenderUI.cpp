@@ -575,7 +575,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
         DownloadAndExtractDataAsync(Globals::AddonPath, clicker_url, "GW2_AutoClicker.exe");
     }
 
-    static bool launch_in_background = false;
+    static bool launch_in_background = true;
     static int num_forges = 0;
     static int num_clicks = 1;
 
@@ -584,7 +584,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     const auto *loading_label = "Loading...";
     const auto *clicker_button_label = "Start Auto Clicker";
     const auto *update_button_label = "Update Scripts";
-    const auto *launch_in_background_label = "Launch in Background";
+    const auto *launch_in_background_label = "Scripts in Background";
     char time_text[50];
     RenderUI::render_last_update(time_text, sizeof(time_text), last_refresh_time);
 
