@@ -46,6 +46,36 @@ static std::map<std::string, int> _collect_json(const json &jval, const std::str
     return kv;
 }
 
+static std::map<std::string, std::string> _collect_json_strings(const json &jval, const std::string &prefix)
+{
+    std::map<std::string, std::string> kv;
+
+    if (jval.is_object())
+    {
+        for (auto it = jval.begin(); it != jval.end(); ++it)
+        {
+            auto _kv = _collect_json_strings(it.value(), prefix.empty() ? it.key() : prefix + "." + it.key());
+            for (const auto &[k, v] : _kv)
+                kv[k] = v;
+        }
+    }
+    else if (jval.is_array())
+    {
+        for (size_t i = 0; i < jval.size(); ++i)
+        {
+            auto _kv = _collect_json_strings(jval[i], prefix + "[" + std::to_string(i) + "]");
+            for (const auto &[k, v] : _kv)
+                kv[k] = v;
+        }
+    }
+    else if (jval.is_string())
+    {
+        kv[prefix] = jval.get<std::string>();
+    }
+
+    return kv;
+}
+
 void Data::requesting()
 {
     if (!requested)
@@ -70,6 +100,7 @@ void Data::requesting()
 
         requested = true;
         api_data.clear();
+        api_string_data.clear();
     }
 }
 
@@ -107,8 +138,10 @@ void Data::storing()
                 request_id = "rare_gear";
 
             auto kv = _collect_json(j, "");
+            auto string_kv = _collect_json_strings(j, "");
 
             api_data[request_id] = kv;
+            api_string_data[request_id] = string_kv;
             it = futures.erase(it);
             return; /* return early in this frame */
         }

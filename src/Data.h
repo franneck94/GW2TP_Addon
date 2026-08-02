@@ -48,6 +48,7 @@ public:
 
     std::list<Request> futures;
     std::map<std::string, std::map<std::string, int>> api_data;
+    std::map<std::string, std::map<std::string, std::string>> api_string_data;
 
     void requesting();
     void storing();

@@ -111,11 +111,18 @@ namespace
         }
     }
 
-    void add_row(const std::string name, const Price &price)
+    void add_row(const std::string &name, const Price &price, const std::string &tooltip = "")
     {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text(name.c_str());
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            if (!tooltip.empty())
+                ImGui::TextUnformatted(tooltip.c_str());
+            ImGui::EndTooltip();
+        }
         ImGui::TableNextColumn();
         ImGui::Text("%d", price.gold);
         ImGui::TableNextColumn();
@@ -125,8 +132,11 @@ namespace
     }
 
     template <size_t N>
-    void _get_ordered_row_data(const std::array<const char *, N> &keys, const std::vector<std::pair<std::string, Price>> &rows)
+    void _get_ordered_row_data(const std::array<const char *, N> &keys,
+                               const std::vector<std::pair<std::string, Price>> &rows,
+                               const std::string &tooltip = "")
     {
+        bool first_row_rendered = false;
         for (const auto &key : keys)
         {
             auto it = std::find_if(rows.begin(), rows.end(), [&key](const auto &pair)
@@ -135,13 +145,15 @@ namespace
             {
                 const auto name = get_clean_category_name(it->first, false);
                 const auto price = it->second;
+                const auto row_tooltip = !first_row_rendered ? tooltip : std::string{};
 
-                add_row(name, price);
+                add_row(name, price, row_tooltip);
+                first_row_rendered = true;
             }
         }
     }
 
-    void get_row_data(const std::map<std::string, int> &kv, const std::string &request_id)
+    void get_row_data(const std::map<std::string, int> &kv, const std::string &request_id, const Data &data)
     {
         auto rows = std::vector<std::pair<std::string, Price>>{};
 
@@ -185,39 +197,48 @@ namespace
                                                 });
         }
 
-        // other
+        const auto tooltip = [&]() -> std::string
+        {
+            const auto it = data.api_string_data.find(request_id);
+            if (it == data.api_string_data.end())
+                return {};
+
+            const auto it2 = it->second.find("calculation_steps");
+            return (it2 == it->second.end()) ? std::string{} : it2->second;
+        }();
+
         if (request_id == "thesis_on_masterful_malice")
-            _get_ordered_row_data(API::THESIS_MASTERFUL_MALICE, rows);
+            _get_ordered_row_data(API::THESIS_MASTERFUL_MALICE, rows, tooltip);
         // runes
         else if (request_id == "scholar_rune")
-            _get_ordered_row_data(API::SCHOLAR_RUNE_NAMES, rows);
+            _get_ordered_row_data(API::SCHOLAR_RUNE_NAMES, rows, tooltip);
         else if (request_id == "dragonhunter_rune")
-            _get_ordered_row_data(API::DRAGONHUNTER_RUNE_NAMES, rows);
+            _get_ordered_row_data(API::DRAGONHUNTER_RUNE_NAMES, rows, tooltip);
         else if (request_id == "guardian_rune")
-            _get_ordered_row_data(API::GUARDIAN_RUNE_NAMES, rows);
+            _get_ordered_row_data(API::GUARDIAN_RUNE_NAMES, rows, tooltip);
         // relics
         else if (request_id == "relic_of_fireworks")
-            _get_ordered_row_data(API::FIREWORKS_NAMES, rows);
+            _get_ordered_row_data(API::FIREWORKS_NAMES, rows, tooltip);
         else if (request_id == "relic_of_thief")
-            _get_ordered_row_data(API::THIEF_NAMES, rows);
+            _get_ordered_row_data(API::THIEF_NAMES, rows, tooltip);
         else if (request_id == "relic_of_aristocracy")
-            _get_ordered_row_data(API::ARISTOCRACY_NAMES, rows);
+            _get_ordered_row_data(API::ARISTOCRACY_NAMES, rows, tooltip);
         // sigil
         else if (request_id == "sigil_of_impact")
-            _get_ordered_row_data(API::SIGIL_OF_IMPACT_NAMES, rows);
+            _get_ordered_row_data(API::SIGIL_OF_IMPACT_NAMES, rows, tooltip);
         else if (request_id == "sigil_of_torment")
-            _get_ordered_row_data(API::SIGIL_OF_TORMENT_NAMES, rows);
+            _get_ordered_row_data(API::SIGIL_OF_TORMENT_NAMES, rows, tooltip);
         else if (request_id == "sigil_of_doom")
-            _get_ordered_row_data(API::SIGIL_OF_DOOM_NAMES, rows);
+            _get_ordered_row_data(API::SIGIL_OF_DOOM_NAMES, rows, tooltip);
         else if (request_id == "sigil_of_bursting")
-            _get_ordered_row_data(API::SIGIL_OF_BURSTING_NAMES, rows);
+            _get_ordered_row_data(API::SIGIL_OF_BURSTING_NAMES, rows, tooltip);
         else if (request_id == "sigil_of_paralyzation")
-            _get_ordered_row_data(API::SIGIL_OF_PARALYZATION_NAMES, rows);
+            _get_ordered_row_data(API::SIGIL_OF_PARALYZATION_NAMES, rows, tooltip);
         // gear
         else if (request_id == "krait_shield_craft")
-            _get_ordered_row_data(API::KRAIT_SHIELD_CRAFT_NAMES, rows);
+            _get_ordered_row_data(API::KRAIT_SHIELD_CRAFT_NAMES, rows, tooltip);
         else if (request_id == "krait_trident_craft")
-            _get_ordered_row_data(API::KRAIT_TRIDENT_CRAFT_NAMES, rows);
+            _get_ordered_row_data(API::KRAIT_TRIDENT_CRAFT_NAMES, rows, tooltip);
         else if (request_id == "rare_gear_salvage")
             _get_ordered_row_data(API::RARE_GEAR_NAMES, rows);
         // gear
@@ -265,7 +286,7 @@ int Render::render_table(const std::string &request_id)
         RenderUI::render_table_header(request_id, url);
 
         if (API::COMMANDS.find(request_id) != API::COMMANDS.end())
-            get_row_data(kv, request_id);
+            get_row_data(kv, request_id, data);
 
         ImGui::EndTable();
     }

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.10.0
+
+- Added craft information string on hover
+
+## 0.9.0
+
+- Added clicker script
+
+## 0.8.0
+
+- n/a
+
 ## 0.7.0 - 2026-04-18
 
 - localhost server is now always used and auto launched
