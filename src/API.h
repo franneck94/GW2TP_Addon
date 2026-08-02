@@ -63,6 +63,13 @@ public:
         return combined;
     }();
 
+    static const inline std::array<const char *, 4> KRAIT_CRAFT_NAMES = {
+        "crafting_cost",
+        "ecto_sell_after_tax",
+        "profit",
+        "calculation_steps",
+    };
+
     static const inline std::array<const char *, 4> CRAFT_NAMES = {
         "crafting_cost",
         "sell",
@@ -133,9 +140,8 @@ public:
     static const inline std::array<const char *, 4> SIGIL_OF_BURSTING_NAMES = CRAFT_NAMES;
     static const inline std::array<const char *, 4> SIGIL_OF_PARALYZATION_NAMES = CRAFT_NAMES;
 
-    static const inline std::array<const char *, 4> KRAIT_SHIELD_CRAFT_NAMES = CRAFT_NAMES;
-
-    static const inline std::array<const char *, 4> KRAIT_TRIDENT_CRAFT_NAMES = CRAFT_NAMES;
+    static const inline std::array<const char *, 4> KRAIT_SHIELD_CRAFT_NAMES = KRAIT_CRAFT_NAMES;
+    static const inline std::array<const char *, 4> KRAIT_TRIDENT_CRAFT_NAMES = KRAIT_CRAFT_NAMES;
 
     static const inline std::array<const char *, 3> FORGE_ENH_NAMES = {
         "cost",

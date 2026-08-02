@@ -116,11 +116,10 @@ namespace
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text(name.c_str());
-        if (ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered() && !tooltip.empty())
         {
             ImGui::BeginTooltip();
-            if (!tooltip.empty())
-                ImGui::TextUnformatted(tooltip.c_str());
+            ImGui::TextUnformatted(tooltip.c_str());
             ImGui::EndTooltip();
         }
         ImGui::TableNextColumn();

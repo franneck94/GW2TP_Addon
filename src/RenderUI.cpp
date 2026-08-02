@@ -33,17 +33,17 @@
 
 namespace
 {
+    static const std::string latest_backend_version = "4.0.0";
     static const std::string backend_url =
-        "https://github.com/franneck94/Gw2TP/releases/download/3.0.0/GW2TP_Python.exe";
-    static const std::string latest_backend_version = "3.0.0";
+        "https://github.com/franneck94/Gw2TP/releases/download/" + latest_backend_version + "/GW2TP_Python.exe";
 
+    static const std::string latest_forge_version = "1.0.0";
     static const std::string forge_url =
-        "https://github.com/franneck94/GW2MysticForge/releases/download/0.2.0/mystic_forge.exe";
-    static const std::string latest_forge_version = "0.2.0";
+        "https://github.com/franneck94/GW2MysticForge/releases/download/" + latest_forge_version + "/mystic_forge.exe";
 
+    static const std::string latest_clicker_version = "1.0.0";
     static const std::string clicker_url =
-        "https://github.com/franneck94/GW2_AutoClicker/releases/download/0.1.0/GW2_AutoClicker.exe";
-    static const std::string latest_clicker_version = "0.1.0";
+        "https://github.com/franneck94/GW2_AutoClicker/releases/download/" + latest_clicker_version + "/GW2_AutoClicker.exe";
 
     bool VersionIsLower(const std::string current_version, const std::string &latest_version)
     {
