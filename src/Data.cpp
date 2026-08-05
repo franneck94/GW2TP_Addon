@@ -141,6 +141,10 @@ void Data::storing()
                 request_id = "ecto";
             else if (request_id == "price?item_id=83008")
                 request_id = "rare_gear";
+            else if (request_id.find("krait_shield_craft") != std::string::npos)
+                request_id = "krait_shield_craft";
+            else if (request_id.find("krait_trident_craft") != std::string::npos)
+                request_id = "krait_trident_craft";
 
             auto kv = _collect_json(j, "");
             auto string_kv = _collect_json_strings(j, "");

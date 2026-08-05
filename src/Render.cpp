@@ -144,9 +144,8 @@ namespace
             {
                 const auto name = get_clean_category_name(it->first, false);
                 const auto price = it->second;
-                auto row_tooltip = !first_row_rendered ? tooltip : std::string{};
 
-                add_row(name, price, row_tooltip);
+                add_row(name, price, tooltip);
                 first_row_rendered = true;
             }
         }
