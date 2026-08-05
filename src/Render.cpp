@@ -204,7 +204,9 @@ namespace
                 return {};
 
             const auto it2 = it->second.find("tooltip_str");
-            return (it2 == it->second.end()) ? std::string{} : it2->second;
+            const auto tooltip = (it2 == it->second.end()) ? std::string{} : it2->second;
+
+            return tooltip;
         }();
 
         if (request_id == "thesis_on_masterful_malice")
