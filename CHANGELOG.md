@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.
 3. Start the game and load the Addon. This will trigger the download of the updated. exe files
 4. Restart the game
 
+## 0.11.0
+
+- GW2TP Version 4.1.0
+- Added customizable param for ecto rate on salvage
+
 ## 0.10.0
 
 - Added craft information string on hover
