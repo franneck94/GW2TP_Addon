@@ -7,9 +7,10 @@
 
 #include "httpclient/httpclient.h"
 
+#include "API.h"
 #include "Constants.h"
 #include "Data.h"
-#include "API.h"
+#include "Settings.h"
 
 using json = nlohmann::json;
 
@@ -134,10 +135,12 @@ void Data::storing()
 
             if (request_id == "price?item_id=19721")
                 request_id = "ecto";
-            if (request_id == "price?item_id=83008")
+            else if (request_id == "price?item_id=83008")
                 request_id = "rare_gear";
-            if (request_id == "lodestone_forge")
-                request_id = "lodestone_forge";
+            else if (request_id == "krait_shield_craft")
+                request_id = "krait_shield_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
+            else if (request_id == "krait_trident_craft")
+                request_id = "krait_trident_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
 
             auto kv = _collect_json(j, "");
             auto string_kv = _collect_json_strings(j, "");
