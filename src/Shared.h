@@ -27,6 +27,8 @@ namespace Globals
     extern bool ForgeProcessActive;
     extern PROCESS_INFORMATION AutoClickerProcessInfo;
     extern bool AutoClickerProcessActive;
+    extern PROCESS_INFORMATION GW2TPServerProcessInfo;
+    extern bool GW2TPServerProcessActive;
 }
 
 #endif

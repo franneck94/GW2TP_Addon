@@ -29,6 +29,9 @@ namespace Settings
     extern std::string ForgeVersion;
     extern std::string BackendVersion;
     extern std::string ClickerVersion;
+    extern float EctoRate;
+    extern std::string BackendVersion;
+    extern std::string ClickerVersion;
 }
 
 #endif

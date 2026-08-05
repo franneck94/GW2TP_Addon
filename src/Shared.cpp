@@ -17,4 +17,6 @@ namespace Globals
     bool ForgeProcessActive = false;
     PROCESS_INFORMATION AutoClickerProcessInfo = {};
     bool AutoClickerProcessActive = false;
+    PROCESS_INFORMATION GW2TPServerProcessInfo = {};
+    bool GW2TPServerProcessActive = false;
 }

@@ -8,6 +8,7 @@ const char *SHOW_WINDOW = "ShowWindow";
 const char *FORGE_VERSION = "ForgeVersion";
 const char *BACKEND_VERSION = "BackendVersion";
 const char *CLICKER_VERSION = "ClickerVersion";
+const char *ECTO_RATE = "EctoRate";
 
 namespace Settings
 {
@@ -46,6 +47,8 @@ namespace Settings
             Settings[BACKEND_VERSION].get_to<std::string>(BackendVersion);
         if (!Settings[CLICKER_VERSION].is_null())
             Settings[CLICKER_VERSION].get_to<std::string>(ClickerVersion);
+        if (!Settings[ECTO_RATE].is_null())
+            Settings[ECTO_RATE].get_to<float>(EctoRate);
     }
 
     void Save(std::filesystem::path SettingsPath)
@@ -56,6 +59,7 @@ namespace Settings
             Settings[FORGE_VERSION] = ForgeVersion;
             Settings[BACKEND_VERSION] = BackendVersion;
             Settings[CLICKER_VERSION] = ClickerVersion;
+            Settings[ECTO_RATE] = EctoRate;
 
             std::ofstream file(SettingsPath);
             file << Settings.dump(1, '\t') << std::endl;
@@ -76,4 +80,5 @@ namespace Settings
     std::string ForgeVersion = "0.1.0";
     std::string BackendVersion = "0.1.0";
     std::string ClickerVersion = "0.1.0";
+    float EctoRate = 0.90f;
 }
