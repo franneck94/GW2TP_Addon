@@ -204,6 +204,9 @@ namespace
 
             const auto it2 = it->second.find("calculation_steps");
             return (it2 == it->second.end()) ? std::string{} : it2->second;
+
+            const auto it3 = it->second.find("_buy_orders");
+            return (it3 == it->second.end()) ? std::string{} : it3->second;
         }();
 
         if (request_id == "thesis_on_masterful_malice")
@@ -247,7 +250,7 @@ namespace
             _get_ordered_row_data(API::COMMON_GEAR_NAMES, rows);
         // t5
         else if (request_id == "t5_mats_buy")
-            _get_ordered_row_data(API::T5_MATS_BUY_NAMES, rows);
+            _get_ordered_row_data(API::T5_MATS_BUY_NAMES, rows, tooltip);
         else if (request_id == "mats_crafting_compare")
             _get_ordered_row_data(API::MATS_CRAFTING_COMPARE_NAMES, rows);
         // forge
@@ -306,9 +309,12 @@ void Render::top_section_child()
         const auto server_exe_path = (Globals::AddonPath / "GW2TP_Python.exe").string();
         if (std::filesystem::exists(server_exe_path))
         {
-            RenderUI::start_executable(server_exe_path, "server.exe", false);
-            server_started = true;
-            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Auto-started localhost server on first render");
+            if (RenderUI::start_executable(server_exe_path, "server.exe", false, &Globals::GW2TPServerProcessInfo))
+            {
+                Globals::GW2TPServerProcessActive = true;
+                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Auto-started localhost server on first render");
+                server_started = true;
+            }
         }
     }
 

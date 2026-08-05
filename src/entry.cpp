@@ -160,6 +160,15 @@ void AddonUnload()
         Globals::AutoClickerProcessInfo = {};
     }
 
+    if (Globals::GW2TPServerProcessActive && Globals::GW2TPServerProcessInfo.hProcess)
+    {
+        TerminateProcess(Globals::GW2TPServerProcessInfo.hProcess, 0);
+        CloseHandle(Globals::GW2TPServerProcessInfo.hProcess);
+        CloseHandle(Globals::GW2TPServerProcessInfo.hThread);
+        Globals::GW2TPServerProcessActive = false;
+        Globals::GW2TPServerProcessInfo = {};
+    }
+
     Settings::Save(Globals::SettingsPath);
 
     DeregisterQuickAccessShortcut();

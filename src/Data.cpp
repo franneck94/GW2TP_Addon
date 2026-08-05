@@ -136,6 +136,8 @@ void Data::storing()
                 request_id = "ecto";
             if (request_id == "price?item_id=83008")
                 request_id = "rare_gear";
+            if (request_id == "lodestone_forge")
+                request_id = "lodestone_forge";
 
             auto kv = _collect_json(j, "");
             auto string_kv = _collect_json_strings(j, "");
