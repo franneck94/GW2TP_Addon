@@ -240,24 +240,24 @@ namespace
         else if (request_id == "krait_trident_craft")
             _get_ordered_row_data(API::KRAIT_TRIDENT_CRAFT_NAMES, rows, tooltip);
         else if (request_id == "rare_gear_salvage")
-            _get_ordered_row_data(API::RARE_GEAR_NAMES, rows);
+            _get_ordered_row_data(API::RARE_GEAR_NAMES, rows, tooltip);
         // gear
         else if (request_id == "gear_salvage")
-            _get_ordered_row_data(API::GEAR_SALVAGE_NAMES, rows);
+            _get_ordered_row_data(API::GEAR_SALVAGE_NAMES, rows, tooltip);
         else if (request_id == "common_gear_salvage")
-            _get_ordered_row_data(API::COMMON_GEAR_NAMES, rows);
+            _get_ordered_row_data(API::COMMON_GEAR_NAMES, rows, tooltip);
         // t5
         else if (request_id == "t5_mats_buy")
             _get_ordered_row_data(API::T5_MATS_BUY_NAMES, rows, tooltip);
         else if (request_id == "mats_crafting_compare")
-            _get_ordered_row_data(API::MATS_CRAFTING_COMPARE_NAMES, rows);
+            _get_ordered_row_data(API::MATS_CRAFTING_COMPARE_NAMES, rows, tooltip);
         // forge
         else if (request_id == "symbol_enh_forge")
-            _get_ordered_row_data(API::FORGE_ENH_NAMES, rows);
+            _get_ordered_row_data(API::FORGE_ENH_NAMES, rows, tooltip);
         else if (request_id == "charm_brilliance_forge")
-            _get_ordered_row_data(API::FORGE_CHARM_NAMES, rows);
+            _get_ordered_row_data(API::FORGE_CHARM_NAMES, rows, tooltip);
         else if (request_id == "lodestone_forge")
-            _get_ordered_row_data(API::LODESTONE_NAMES, rows);
+            _get_ordered_row_data(API::LODESTONE_NAMES, rows, tooltip);
         else if (request_id == "ecto" || request_id == "rare_gear")
         {
             for (const auto &[name, price] : rows)
