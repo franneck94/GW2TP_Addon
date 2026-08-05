@@ -92,6 +92,10 @@ void Data::requesting()
                 command = "price?item_id=19721";
             else if (command == "rare_gear")
                 command = "price?item_id=83008";
+            else if (command == "krait_shield_craft" && Settings::EctoRate != 0.90F)
+                command = "krait_shield_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
+            else if (command == "krait_trident_craft" && Settings::EctoRate != 0.90F)
+                command = "krait_trident_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
 
             const auto wstr_url = base_url + L"/" + std::wstring(command.begin(), command.end());
             auto future = HTTPClient::GetRequestAsync(wstr_url);
@@ -137,10 +141,6 @@ void Data::storing()
                 request_id = "ecto";
             else if (request_id == "price?item_id=83008")
                 request_id = "rare_gear";
-            else if (request_id == "krait_shield_craft")
-                request_id = "krait_shield_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
-            else if (request_id == "krait_trident_craft")
-                request_id = "krait_trident_craft?ecto_rate=" + std::to_string(Settings::EctoRate);
 
             auto kv = _collect_json(j, "");
             auto string_kv = _collect_json_strings(j, "");

@@ -598,6 +598,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
 
     const auto input_width = 100.0f + ImGui::CalcTextSize("Num forges").x + ImGui::GetStyle().ItemInnerSpacing.x;
     const auto clicker_input_width = 60.0f + ImGui::CalcTextSize("Clicks").x + ImGui::GetStyle().ItemInnerSpacing.x;
+    const auto ecto_rate_width = 100.0f + ImGui::CalcTextSize("Ecto rate").x + ImGui::GetStyle().ItemInnerSpacing.x;
     const auto forge_btn_width = ImGui::CalcTextSize(forge_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto refresh_btn_width = ImGui::CalcTextSize(refresh_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
     const auto clicker_btn_width = ImGui::CalcTextSize(clicker_button_label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
@@ -608,7 +609,7 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
     const auto update_text_width = ImGui::CalcTextSize(time_text).x + ImGui::GetStyle().FramePadding.x * 2.0f;
 
     const auto first_row_width = refresh_btn_width + spacing + update_btn_width + spacing + launch_in_background_btn_width + spacing + update_text_width;
-    const auto second_row_width = input_width + spacing + forge_btn_width + spacing + clicker_input_width + spacing + clicker_btn_width;
+    const auto second_row_width = ecto_rate_width + spacing + input_width + spacing + forge_btn_width + spacing + clicker_input_width + spacing + clicker_btn_width;
 
     center_group_with_width(first_row_width);
 
@@ -649,16 +650,16 @@ void RenderUI::render_top_controls(Data &data, std::chrono::steady_clock::time_p
 
     ImGui::Spacing();
 
-    ImGui::SetNextItemWidth(150.0f);
-    if (ImGui::InputFloat("Ecto rate", &Settings::EctoRate, 0.01f, 1.0f, "%.3f"))
+    center_group_with_width(second_row_width);
+
+    ImGui::SetNextItemWidth(100.0f);
+    if (ImGui::InputFloat("Ecto rate", &Settings::EctoRate, 0.01f, 1.0f, "%.2f"))
     {
         Settings::EctoRate = std::clamp(Settings::EctoRate, 0.0f, 1.0f);
         Settings::Save(Globals::SettingsPath);
     }
 
-    ImGui::Spacing();
-
-    center_group_with_width(second_row_width);
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(100.0f);
     ImGui::InputInt("Num forges", &num_forges, 1, 250);
 

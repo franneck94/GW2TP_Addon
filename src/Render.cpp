@@ -144,7 +144,7 @@ namespace
             {
                 const auto name = get_clean_category_name(it->first, false);
                 const auto price = it->second;
-                const auto row_tooltip = !first_row_rendered ? tooltip : std::string{};
+                auto row_tooltip = !first_row_rendered ? tooltip : std::string{};
 
                 add_row(name, price, row_tooltip);
                 first_row_rendered = true;
@@ -189,11 +189,13 @@ namespace
 
             const auto transformed_name = std::string{name0.substr(0, name0.size() - 2)};
 
-            rows.emplace_back(transformed_name, Price{
-                                                    .copper = copper,
-                                                    .silver = silver,
-                                                    .gold = gold,
-                                                });
+            auto price = Price{
+                .copper = copper,
+                .silver = silver,
+                .gold = gold,
+            };
+
+            rows.emplace_back(transformed_name, price);
         }
 
         const auto tooltip = [&]() -> std::string
@@ -202,11 +204,8 @@ namespace
             if (it == data.api_string_data.end())
                 return {};
 
-            const auto it2 = it->second.find("calculation_steps");
+            const auto it2 = it->second.find("tooltip_str");
             return (it2 == it->second.end()) ? std::string{} : it2->second;
-
-            const auto it3 = it->second.find("_buy_orders");
-            return (it3 == it->second.end()) ? std::string{} : it3->second;
         }();
 
         if (request_id == "thesis_on_masterful_malice")

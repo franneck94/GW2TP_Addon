@@ -67,14 +67,14 @@ public:
         "crafting_cost",
         "ecto_sell_after_tax",
         "profit",
-        "calculation_steps",
+        "tooltip_str",
     };
 
     static const inline std::array<const char *, 4> CRAFT_NAMES = {
         "crafting_cost",
         "sell",
         "profit",
-        "calculation_steps",
+        "tooltip_str",
     };
 
     static const inline std::array<const char *, 4> RARE_GEAR_NAMES = {
@@ -91,21 +91,15 @@ public:
         "profit_stack",
     };
 
-    static const inline std::array<const char *, 14> T5_MATS_BUY_NAMES = {
+    static const inline std::array<const char *, 8> T5_MATS_BUY_NAMES = {
         "large_claw",
-        "large_claw_buy_orders",
         "potent_blood",
-        "potent_blood_buy_orders",
         "large_bone",
-        "large_bone_buy_orders",
         "intricate_totem",
-        "intricate_totem_buy_orders",
         "large_fang",
-        "large_fang_buy_orders",
         "potent_venom",
-        "potent_venom_buy_orders",
         "large_scale",
-        "large_scale_buy_orders",
+        "tooltip_str",
     };
 
     static const inline std::array<const char *, 6> MATS_CRAFTING_COMPARE_NAMES = {
