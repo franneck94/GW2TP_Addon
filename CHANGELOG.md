@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## How To Update
 
+0. Exit from the game and check if GW2TP exe is still active in Task Manager, if so -> stop it
 1. Download new DLL and place it in addon dir: XXX\GW2\addons\GW2TP
 2. Delete all .exe files in addon dir: XXX\GW2\addons\GW2TP
 3. Start the game and load the Addon. This will trigger the download of the updated. exe files
