@@ -10,9 +10,15 @@ All notable changes to this project will be documented in this file.
 3. Start the game and load the Addon. This will trigger the download of the updated. exe files
 4. Restart the game
 
+## 0.12.0
+
+- GW2TP Version 4.2.0
+  - Tool tip string for Mithril/Elder Wood (Sorted Buy Order Amound)
+
 ## 0.11.0
 
 - GW2TP Version 4.1.0
+  - Tool tip string for T5 Mats (Sorted Buy Order Amound)
 - Added customizable param for ecto rate on salvage
 
 ## 0.10.0

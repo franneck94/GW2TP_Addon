@@ -102,13 +102,14 @@ public:
         "tooltip_str",
     };
 
-    static const inline std::array<const char *, 6> MATS_CRAFTING_COMPARE_NAMES = {
+    static const inline std::array<const char *, 7> MATS_CRAFTING_COMPARE_NAMES = {
         "mithril_ore_to_ingot",
         "mithril_ingot_buy",
         "elder_wood_log_to_plank",
         "elder_wood_plank_buy",
         "lucent_mote_to_crystal",
         "lucent_crystal_buy",
+        "tooltip_str",
     };
 
     static const inline std::array<const char *, 4> COMMON_GEAR_NAMES = {
