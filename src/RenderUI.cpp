@@ -33,7 +33,7 @@
 
 namespace
 {
-    static const std::string latest_backend_version = "4.0.0";
+    static const std::string latest_backend_version = "4.1.0";
     static const std::string backend_url =
         "https://github.com/franneck94/Gw2TP/releases/download/" + latest_backend_version + "/GW2TP_Python.exe";
 
