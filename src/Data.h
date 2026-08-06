@@ -4,6 +4,8 @@
 #include <list>
 #include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 struct Price
 {
@@ -18,6 +20,9 @@ struct PriceTriplet
     Price sell;
     Price profit;
 };
+
+using OrderedIntValues = std::vector<std::pair<std::string, int>>;
+using OrderedStringValues = std::vector<std::pair<std::string, std::string>>;
 
 struct Request
 {
@@ -47,8 +52,8 @@ public:
     bool loaded = false;
 
     std::list<Request> futures;
-    std::map<std::string, std::map<std::string, int>> api_data;
-    std::map<std::string, std::map<std::string, std::string>> api_string_data;
+    std::map<std::string, OrderedIntValues> api_data;
+    std::map<std::string, OrderedStringValues> api_string_data;
 
     void requesting();
     void storing();

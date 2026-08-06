@@ -14,17 +14,16 @@
 
 using json = nlohmann::json;
 
-static std::map<std::string, int> _collect_json(const json &jval, const std::string &prefix)
+static OrderedIntValues _collect_json(const json &jval, const std::string &prefix)
 {
-    std::map<std::string, int> kv;
+    OrderedIntValues kv;
 
     if (jval.is_object())
     {
         for (auto it = jval.begin(); it != jval.end(); ++it)
         {
             auto _kv = _collect_json(it.value(), prefix.empty() ? it.key() : prefix + "." + it.key());
-            for (const auto &[k, v] : _kv)
-                kv[k] = v;
+            kv.insert(kv.end(), _kv.begin(), _kv.end());
         }
     }
     else if (jval.is_array())
@@ -32,32 +31,30 @@ static std::map<std::string, int> _collect_json(const json &jval, const std::str
         for (size_t i = 0; i < jval.size(); ++i)
         {
             auto _kv = _collect_json(jval[i], prefix + "[" + std::to_string(i) + "]");
-            for (const auto &[k, v] : _kv)
-                kv[k] = v;
+            kv.insert(kv.end(), _kv.begin(), _kv.end());
         }
     }
     else
     {
         if (jval.is_number_integer())
         {
-            kv[prefix] = static_cast<int>(jval);
+            kv.emplace_back(prefix, static_cast<int>(jval));
         }
     }
 
     return kv;
 }
 
-static std::map<std::string, std::string> _collect_json_strings(const json &jval, const std::string &prefix)
+static OrderedStringValues _collect_json_strings(const json &jval, const std::string &prefix)
 {
-    std::map<std::string, std::string> kv;
+    OrderedStringValues kv;
 
     if (jval.is_object())
     {
         for (auto it = jval.begin(); it != jval.end(); ++it)
         {
             auto _kv = _collect_json_strings(it.value(), prefix.empty() ? it.key() : prefix + "." + it.key());
-            for (const auto &[k, v] : _kv)
-                kv[k] = v;
+            kv.insert(kv.end(), _kv.begin(), _kv.end());
         }
     }
     else if (jval.is_array())
@@ -65,13 +62,12 @@ static std::map<std::string, std::string> _collect_json_strings(const json &jval
         for (size_t i = 0; i < jval.size(); ++i)
         {
             auto _kv = _collect_json_strings(jval[i], prefix + "[" + std::to_string(i) + "]");
-            for (const auto &[k, v] : _kv)
-                kv[k] = v;
+            kv.insert(kv.end(), _kv.begin(), _kv.end());
         }
     }
     else if (jval.is_string())
     {
-        kv[prefix] = jval.get<std::string>();
+        kv.emplace_back(prefix, jval.get<std::string>());
     }
 
     return kv;

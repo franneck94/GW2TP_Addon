@@ -14,6 +14,7 @@
 #include <d3d11.h>
 #include <dxgi.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -111,6 +112,34 @@ namespace
         }
     }
 
+    std::string get_tooltip_for_request(const std::string &request_id, const Data &data)
+    {
+        const auto it = data.api_string_data.find(request_id);
+        if (it == data.api_string_data.end())
+            return {};
+
+        const auto it2 = std::find_if(it->second.begin(), it->second.end(), [](const auto &entry)
+                                      { return entry.first == "tooltip_str"; });
+        return (it2 == it->second.end()) ? std::string{} : it2->second;
+    }
+
+    void sort_rows_for_request(std::vector<std::pair<std::string, Price>> &rows, const std::string &request_id)
+    {
+        const auto to_total_copper = [](const Price &price) -> long long
+        {
+            return static_cast<long long>(price.gold) * 10000LL + static_cast<long long>(price.silver) * 100LL + price.copper;
+        };
+
+        std::stable_sort(rows.begin(), rows.end(), [&](const auto &lhs, const auto &rhs)
+                         {
+                             const auto lhs_total = to_total_copper(lhs.second);
+                             const auto rhs_total = to_total_copper(rhs.second);
+                             if (lhs_total == rhs_total)
+                                 return lhs.first < rhs.first;
+
+                             return lhs_total < rhs_total; });
+    }
+
     void add_row(const std::string &name, const Price &price, const std::string &tooltip = "")
     {
         ImGui::TableNextRow();
@@ -135,49 +164,40 @@ namespace
                                const std::vector<std::pair<std::string, Price>> &rows,
                                const std::string &tooltip = "")
     {
-        bool first_row_rendered = false;
-        for (const auto &key : keys)
+        for (const auto &row : rows)
         {
-            auto it = std::find_if(rows.begin(), rows.end(), [&key](const auto &pair)
-                                   { return pair.first == key; });
-            if (it != rows.end())
-            {
-                const auto name = get_clean_category_name(it->first, false);
-                const auto price = it->second;
+            const auto name = get_clean_category_name(row.first, false);
+            const auto price = row.second;
 
-                add_row(name, price, tooltip);
-                first_row_rendered = true;
-            }
+            add_row(name, price, tooltip);
         }
     }
 
-    void get_row_data(const std::map<std::string, int> &kv, const std::string &request_id, const Data &data)
+    std::vector<std::pair<std::string, Price>> build_rows_for_rendering(const OrderedIntValues &kv)
     {
         auto rows = std::vector<std::pair<std::string, Price>>{};
 
         if (kv.size() < 3)
-            return;
+            return rows;
 
-        for (size_t i = 0; i + 2 < kv.size(); i += 3)
+        for (size_t i = 0; i + 2 < kv.size();)
         {
-            auto it = std::next(kv.begin(), i);
-
-            if (it->first.find("_g") == std::string::npos && it->first.find("_s") == std::string::npos && it->first.find("_c") == std::string::npos)
+            if (kv[i].first.find("_g") == std::string::npos && kv[i].first.find("_s") == std::string::npos && kv[i].first.find("_c") == std::string::npos)
             {
                 ++i;
-                ++it;
+                continue;
             }
 
-            if (std::distance(it, kv.end()) < 3)
+            if (i + 2 >= kv.size())
                 break;
 
-            auto name0 = std::next(it, 0)->first;
-            auto name1 = std::next(it, 1)->first;
-            auto name2 = std::next(it, 2)->first;
+            const auto &name0 = kv[i].first;
+            const auto &name1 = kv[i + 1].first;
+            const auto &name2 = kv[i + 2].first;
 
-            const auto val0 = std::next(it, 0)->second;
-            const auto val1 = std::next(it, 1)->second;
-            const auto val2 = std::next(it, 2)->second;
+            const auto val0 = kv[i].second;
+            const auto val1 = kv[i + 1].second;
+            const auto val2 = kv[i + 2].second;
 
             const auto gold = name0.ends_with("_g") ? val0 : name1.ends_with("_g") ? val1
                                                                                    : val2;
@@ -188,26 +208,24 @@ namespace
 
             const auto transformed_name = std::string{name0.substr(0, name0.size() - 2)};
 
-            auto price = Price{
+            const auto price = Price{
                 .copper = copper,
                 .silver = silver,
                 .gold = gold,
             };
 
             rows.emplace_back(transformed_name, price);
+            i += 3;
         }
 
-        const auto tooltip = [&]() -> std::string
-        {
-            const auto it = data.api_string_data.find(request_id);
-            if (it == data.api_string_data.end())
-                return {};
+        return rows;
+    }
 
-            const auto it2 = it->second.find("tooltip_str");
-            const auto tooltip = (it2 == it->second.end()) ? std::string{} : it2->second;
-
-            return tooltip;
-        }();
+    void render_rows_for_request(std::vector<std::pair<std::string, Price>> &rows,
+                                 const std::string &request_id,
+                                 const Data &data)
+    {
+        const auto tooltip = get_tooltip_for_request(request_id, data);
 
         if (request_id == "thesis_on_masterful_malice")
             _get_ordered_row_data(API::THESIS_MASTERFUL_MALICE, rows, tooltip);
@@ -250,9 +268,15 @@ namespace
             _get_ordered_row_data(API::COMMON_GEAR_NAMES, rows, tooltip);
         // t5
         else if (request_id == "t5_mats_buy")
+        {
+            sort_rows_for_request(rows, request_id);
             _get_ordered_row_data(API::T5_MATS_BUY_NAMES, rows, tooltip);
+        }
         else if (request_id == "mats_crafting_compare")
+        {
+            sort_rows_for_request(rows, request_id);
             _get_ordered_row_data(API::MATS_CRAFTING_COMPARE_NAMES, rows, tooltip);
+        }
         // forge
         else if (request_id == "symbol_enh_forge")
             _get_ordered_row_data(API::FORGE_ENH_NAMES, rows, tooltip);
@@ -265,8 +289,12 @@ namespace
             for (const auto &[name, price] : rows)
                 add_row(name, price);
         }
-        else
-            int i = 2;
+    }
+
+    void get_row_data(const OrderedIntValues &kv, const std::string &request_id, const Data &data)
+    {
+        auto rows = build_rows_for_rendering(kv);
+        render_rows_for_request(rows, request_id, data);
     }
 
 }
@@ -281,7 +309,7 @@ int Render::render_table(const std::string &request_id)
         return -1;
     }
 
-    ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableColumnFlags_NoSort;
+    ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable;
     if (ImGui::BeginTable(("Prices##" + request_id).c_str(), 4, flags))
     {
         const std::string url = get_url_for_request_id(request_id);
