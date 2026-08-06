@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 3. Start the game and load the Addon. This will trigger the download of the updated. exe files
 4. Restart the game
 
+## 0.13.0
+
+- Sorted T5 and Regular Mats Table
+
 ## 0.12.0
 
 - GW2TP Version 4.2.0
