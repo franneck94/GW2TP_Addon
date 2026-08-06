@@ -309,7 +309,7 @@ int Render::render_table(const std::string &request_id)
         return -1;
     }
 
-    ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable;
+    ImGuiTableFlags flags = ImGuiTableFlags_Borders;
     if (ImGui::BeginTable(("Prices##" + request_id).c_str(), 4, flags))
     {
         const std::string url = get_url_for_request_id(request_id);
