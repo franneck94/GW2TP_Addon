@@ -185,15 +185,15 @@ namespace
     }
 }
 
-bool RenderUI::start_executable(const std::string &exe_path, const std::string &args, bool show_cmd_window, PROCESS_INFORMATION *process_info)
+void RenderUI::start_executable(const std::string &exe_path, const std::string &args, bool show_cmd_window)
 {
     try
     {
-        std::string command_line = "cmd /k \"" + exe_path + "\"";
+        std::string command = "cmd /k \"" + exe_path + "\"";
 
         if (!args.empty())
         {
-            command_line += " " + args;
+            command += " " + args;
         }
 
         STARTUPINFOA si = {sizeof(si)};
@@ -201,8 +201,8 @@ bool RenderUI::start_executable(const std::string &exe_path, const std::string &
         si.dwFlags = STARTF_USESHOWWINDOW;
         si.wShowWindow = show_cmd_window ? SW_SHOWNORMAL : SW_HIDE;
 
-        if (CreateProcessA(exe_path.c_str(),
-                           const_cast<char *>(command_line.c_str()),
+        if (CreateProcessA(nullptr,
+                           const_cast<char *>(command.c_str()),
                            nullptr,
                            nullptr,
                            FALSE,
@@ -213,27 +213,19 @@ bool RenderUI::start_executable(const std::string &exe_path, const std::string &
                            &pi))
         {
             (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", ("Started executable: " + exe_path).c_str());
-            if (process_info)
-            {
-                *process_info = pi;
-            }
-            else
-            {
-                CloseHandle(pi.hProcess);
-                CloseHandle(pi.hThread);
-            }
-            return true;
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
         }
-
-        DWORD createProcessError = GetLastError();
-        auto errorMsg = "Failed to start executable with error code: " + std::to_string(createProcessError);
-        (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
-        return false;
+        else
+        {
+            DWORD createProcessError = GetLastError();
+            auto errorMsg = "Failed to start executable with error code: " + std::to_string(createProcessError);
+            (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", errorMsg.c_str());
+        }
     }
     catch (...)
     {
         (void)Globals::APIDefs->Log(ELogLevel_CRITICAL, "GW2TP", "Executable execution failed.");
-        return false;
     }
 }
 

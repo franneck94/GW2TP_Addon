@@ -309,12 +309,10 @@ void Render::top_section_child()
         const auto server_exe_path = (Globals::AddonPath / "GW2TP_Python.exe").string();
         if (std::filesystem::exists(server_exe_path))
         {
-            if (RenderUI::start_executable(server_exe_path, "server.exe", false, &Globals::GW2TPServerProcessInfo))
-            {
-                Globals::GW2TPServerProcessActive = true;
-                (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Auto-started localhost server on first render");
-                server_started = true;
-            }
+            RenderUI::start_executable(server_exe_path, "server.exe", false);
+            Globals::GW2TPServerProcessActive = true;
+            (void)Globals::APIDefs->Log(ELogLevel_INFO, "GW2TP", "Auto-started localhost server on first render");
+            server_started = true;
         }
     }
 

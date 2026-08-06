@@ -9,7 +9,7 @@
 
 namespace RenderUI
 {
-    bool start_executable(const std::string &exe_path, const std::string &args = "", bool show_cmd_window = false, PROCESS_INFORMATION *process_info = nullptr);
+    void start_executable(const std::string &exe_path, const std::string &args, bool show_cmd_window);
     bool version_is_lower(const std::string current_version, const std::string &latest_version);
     bool download_file(const std::string &url, const std::filesystem::path &outputPath);
     bool extract_zip_file(const std::filesystem::path &zipPath, const std::filesystem::path &extractPath);
